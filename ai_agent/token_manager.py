@@ -4,7 +4,15 @@ import urllib.request, json, time, base64, os
 BASE = 'https://stg-login.abafusion.ai'
 DP = 'https://stg-dp.abafusion.ai/api/v1'
 UA = {'User-Agent': 'Hermes-Agent/1.0'}
-CREDS = {'username': 'test_02', 'password': 'AZaz12,,', 'tenant': 'arma'}
+# Credentials come from environment variables (never commit real secrets):
+#   export ABA_USERNAME=test_02
+#   export ABA_PASSWORD='...'
+#   export ABA_TENANT=arma
+CREDS = {
+    'username': os.environ.get('ABA_USERNAME', ''),
+    'password': os.environ.get('ABA_PASSWORD', ''),
+    'tenant': os.environ.get('ABA_TENANT', 'arma'),
+}
 
 class TokenManager:
     """Manages ABA Fusion auth tokens with auto-refresh.
