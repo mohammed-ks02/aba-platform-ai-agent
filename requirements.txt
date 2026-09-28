@@ -1,4 +1,15 @@
-# Runtime has zero third-party deps (Python stdlib only).
-# Test-time dependency:
+# Core agent runtime: Python stdlib only (no deps needed for agent.py).
+# Web UI (webui/app.py):
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.0
+
+# Live/visualized testing + web UI screenshots:
+playwright>=1.44        # then run:  python -m playwright install chromium
+
+# Optional LLM providers (all use plain HTTP via urllib -- no SDKs needed).
+# Just export API keys, e.g.:
+#   GROQ_API_KEY=gsk_...   NVIDIA_API_KEY=nvapi-...
+
+# Testing:
 pytest>=8.0
-playwright>=1.44
