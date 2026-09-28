@@ -1,13 +1,6 @@
-# Python compiled files and cache
+# Compiled and cache files
 __pycache__/
 *.pyc
-.pytest_cache/
 
-# Virtual environments (created by setup.bat / setup.sh)
-.venv/
-venv/
-
-# Generated reports and data artifacts
-ai_agent/data/
-# Local secrets (see env.example)
-.env
+# Database files
+*.db

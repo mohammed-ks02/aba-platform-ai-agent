@@ -63,6 +63,7 @@ class Run:
         self.started = datetime.now().isoformat(timespec='seconds')
         self.finished = None
         self.q = queue.Queue()
+        self.buffer = []                  # full trace history (survives reload)
         self.report = None                # filled when done
         self.error = None
         self.stop_requested = threading.Event()
@@ -73,8 +74,10 @@ class Run:
         self.trace('[web] STOP requested - cancelling at next step...')
 
     def trace(self, msg):
-        self.q.put({'ts': datetime.now().strftime('%H:%M:%S'),
-                    'line': str(msg).strip()})
+        item = {'ts': datetime.now().strftime('%H:%M:%S'),
+                'line': str(msg).strip()}
+        self.buffer.append(item)
+        self.q.put(item)
 
     def brief(self):
         return {'id': self.id, 'status': self.status, 'started': self.started,
@@ -183,8 +186,9 @@ def _execute(run):
     finally:
         set_abort_check(None)
         run.finished = datetime.now().isoformat(timespec='seconds')
-        run.q.put({'ts': datetime.now().strftime('%H:%M:%S'),
-                   'line': '__DONE__', 'status': run.status})
+        run.buffer.append({'ts': datetime.now().strftime('%H:%M:%S'),
+                           'line': '__DONE__', 'status': run.status})
+        run.q.put(run.buffer[-1])
 
 
 def _start_run(spec):
@@ -316,6 +320,17 @@ def api_stream(rid: str):
         raise HTTPException(404, 'unknown run')
 
     def gen():
+        # 1. replay buffered history so reopening "view" (or refreshing the
+    #    page) always shows the full trace, even if it already finished.
+        for item in list(run.buffer):
+            yield 'data: ' + json.dumps(item, default=str) + '\n\n'
+        if run.status in ('done', 'error', 'stopped'):
+            yield 'data: ' + json.dumps(
+                {'ts': datetime.now().strftime('%H:%M:%S'),
+                 'line': '__DONE__', 'status': run.status},
+                default=str) + '\n\n'
+            return
+        # 2. then stream live lines from the queue
         while True:
             try:
                 item = run.q.get(timeout=25)

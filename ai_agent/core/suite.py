@@ -211,8 +211,8 @@ def test_logic(mem, keys=None, token='', trace_cb=None):
             'source_config': {'host': 'example.com'}}
 
     # 1. idempotency: same POST twice
-    r1, m1 = _timed_request('POST', f'{mgr}/connectors', body, token)
-    r2, m2 = _timed_request('POST', f'{mgr}/connectors', body, token)
+    r1, m1 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
+    r2, m2 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
     dup_created = r1['status'] < 400 and r2['status'] < 400
     out['idempotent_post'] = {'first': r1['status'], 'second': r2['status'],
                               'duplicate_allowed': dup_created}
@@ -234,7 +234,7 @@ def test_logic(mem, keys=None, token='', trace_cb=None):
 
     # 3. validation semantics: bad type should be 4xx not 5xx
     bad = {'name': 12345, 'type': ['not-a-string'], 'source_config': 'flat'}
-    rb, _ = _timed_request('POST', f'{mgr}/connectors', bad, token)
+    rb, _ = _timed_request('POST', f'{mgr}/connectors', bad, token=token)
     ok_sem = 400 <= rb['status'] < 500
     out['validation_semantics'] = {'status': rb['status'], 'correct': ok_sem}
     trace(f'[logic] malformed payload -> {rb["status"]} '
