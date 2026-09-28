@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABA Fusion AI Agent</title>
+<style>
+:root{--bg:#0e1420;--panel:#161d2c;--panel2:#1d2537;--tx:#dbe3f0;--mut:#8593ab;
+--acc:#4f8cff;--ok:#3ecf8e;--warn:#ffb454;--bad:#ff6b6b;--crit:#ff4d6d;
+--bord:#26304a;--mono:ui-monospace,'Cascadia Mono',Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;
+background:linear-gradient(90deg,#141b2b,#1a2338);border-bottom:1px solid var(--bord)}
+header h1{font-size:17px;margin:0;font-weight:700}
+header .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+main{max-width:1280px;margin:0 auto;padding:18px}
+.grid{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:16px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--bord);border-radius:12px;
+padding:16px;margin-bottom:16px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;
+color:var(--mut);margin:0 0 12px}
+textarea,input[type=text],select{width:100%;background:var(--panel2);
+border:1px solid var(--bord);border-radius:8px;color:var(--tx);padding:9px 11px;
+font:inherit;outline:none}
+textarea:focus,input:focus,select:focus{border-color:var(--acc)}
+textarea{min-height:84px;resize:vertical}
+label.chk{display:inline-flex;align-items:center;gap:6px;margin:3px 10px 3px 0;
+cursor:pointer;color:var(--tx);font-size:13px}
+label.chk input{accent-color:var(--acc)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+button{background:var(--acc);color:#fff;border:0;border-radius:8px;
+padding:9px 18px;font:600 14px inherit;cursor:pointer}
+button.sec{background:var(--panel2);border:1px solid var(--bord);color:var(--tx);font-weight:500}
+button:disabled{opacity:.45;cursor:not-allowed}
+.plan{background:#12203a;border:1px solid #2b4a7a;border-radius:8px;
+padding:10px 12px;margin-top:10px;font-size:13px;display:none}
+.plan b{color:var(--acc)}
+#livecard{display:none}
+.progress{height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0 12px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--ok));
+transition:width .5s}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.step{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--panel2);
+border:1px solid var(--bord);color:var(--mut)}
+.step.on{border-color:var(--acc);color:var(--acc)}
+.step.fin{border-color:var(--ok);color:var(--ok)}
+#trace{background:#0a0f18;border:1px solid var(--bord);border-radius:8px;
+font:12px/1.6 var(--mono);padding:10px;height:280px;overflow-y:auto;white-space:pre-wrap}
+#trace .t{color:#4a5a78}
+#trace .hit{color:var(--warn)}
+#trace .err{color:var(--bad)}
+#trace .ok{color:var(--ok)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stat{background:var(--panel2);border:1px solid var(--bord);border-radius:10px;padding:12px;text-align:center}
+.stat .n{font-size:24px;font-weight:800}
+.stat .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--bord)}
+.tab{padding:8px 14px;border:0;background:none;color:var(--mut);cursor:pointer;
+font:600 13px inherit;border-bottom:2px solid transparent}
+.tab.sel{color:var(--acc);border-bottom-color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:600;padding:7px 9px;
+border-bottom:1px solid var(--bord);font-size:11px;text-transform:uppercase}
+td{padding:7px 9px;border-bottom:1px solid #1c2438;vertical-align:top}
+tr:hover td{background:#1a2233}
+.sev{padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase}
+.critical{background:#4d1226;color:var(--crit)}.high{background:#4d2112;color:var(--bad)}
+.medium{background:#42330f;color:var(--warn)}.low{background:#12324d;color:#7cc4ff}
+.info{background:#1d2837;color:var(--mut)}
+.bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;min-width:120px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#3f6fd8,#4fd1a5)}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.shot{background:var(--panel2);border:1px solid var(--bord);border-radius:10px;overflow:hidden}
+.shot img{width:100%;display:block;cursor:zoom-in}
+.shot .cap{padding:8px 10px;font-size:12px;color:var(--mut)}
+.uxitem{border:1px solid var(--bord);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--panel2)}
+.uxitem img{max-width:100%;border-radius:6px;margin:8px 0;cursor:zoom-in}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#12324d;color:#7cc4ff}
+.mut{color:var(--mut);font-size:12px}
+dialog{background:var(--panel);color:var(--tx);border:1px solid var(--bord);
+border-radius:10px;max-width:92vw;max-height:92vh;padding:8px}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog img{max-width:100%;max-height:85vh;display:block}
+.runlist{font-size:12px}.runlist div{padding:4px 0;border-bottom:1px solid #1c2438}
+.pill{padding:1px 8px;border-radius:10px;font-size:11px;background:var(--panel2);border:1px solid var(--bord)}
+.pill.done{color:var(--ok);border-color:var(--ok)}.pill.running{color:var(--acc);border-color:var(--acc)}
+.pill.error{color:var(--bad);border-color:var(--bad)}
+</style>
+</head>
+<body>
+<header><span class="dot"></span><h1>ABA Fusion — AI Multi-Platform Agent</h1>
+<span class="mut" id="mode">deterministic mode (no LLM configured)</span></header>
+<main>
+<div class="grid">
+<!-- LEFT: control column -->
+<div>
+  <div class="card">
+    <h2>Tell the agent what to test</h2>
+    <textarea id="prompt" placeholder='e.g. "check how fast analytics and pulse load, review the forge login page UX, then fuzz the data platform API for injections and test rate limits"'
+      ></textarea>
+    <div class="row">
+      <select id="provider" style="flex:1"><option value="">LLM: auto-detect</option></select>
+      <input type="text" id="model" placeholder="model override (optional)" style="flex:1">
+    </div>
+    <div style="margin-top:10px">
+      <span class="mut">Or pick dimensions explicitly:</span><br>
+      <span id="dimboxes"></span>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="quick"> quick mode</label>
+      <label class="chk"><input type="checkbox" id="aipayloads"> AI-generated payloads</label>
+    </div>
+    <div class="plan" id="plan"></div>
+    <div class="row">
+      <button id="btnPlan" class="sec">🧠 Plan only</button>
+      <button id="btnRun">▶ Run test</button>
+    </div>
+  </div>
+
+  <div class="card" id="livecard">
+    <h2>Live test visualization</h2>
+    <div class="steps" id="steps"></div>
+    <div class="progress"><i id="pbar"></i></div>
+    <div id="trace"></div>
+    <div class="row"><button class="sec" id="btnClear">Close view</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Recent runs</h2>
+    <div class="runlist" id="runs">—</div>
+  </div>
+</div>
+
+<!-- RIGHT: results column -->
+<div>
+  <div class="card">
+    <div class="statgrid" id="stats">
+      <div class="stat"><div class="n" id="s-plat">–</div><div class="l">Platforms</div></div>
+      <div class="stat"><div class="n" id="s-alive">–</div><div class="l">Alive</div></div>
+      <div class="stat"><div class="n" id="s-find">–</div><div class="l">Findings</div></div>
+      <div class="stat"><div class="n" id="s-ch" style="color:var(--crit)">–</div><div class="l">Crit/High</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tabs" id="tabs"></div>
+    <div id="tabbody"><span class="mut">Run a test or press Refresh to load results.</span></div>
+  </div>
+  <div class="card"><div class="row">
+    <button class="sec" id="btnRefresh">⟳ Refresh results</button>
+    <button class="sec" onclick="loadTab('reports')">Reports</button>
+  </div></div>
+</div>
+</div>
+</main>
+<dialog id="dlg"><img id="dlgimg"></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const DIMS=[['performance','⚡ Performance'],['limits','🧱 Limits'],['security','🛡 Security'],
+['functionality','⚙ Functionality'],['logic','🔀 Logic'],['ux','👁 UX/UI (screenshots)']];
+$('#dimboxes').innerHTML=DIMS.map(d=>
+`<label class="chk"><input type="checkbox" class="dim" value="${d[0]}">${d[1]}</label>`).join('');
+
+async function j(u,opt){const r=await fetch(u,opt);if(!r.ok)throw new Error((await r.text()).slice(0,200));return r.json()}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+(async()=>{try{
+  const ps=await j('/api/providers');
+  $('#provider').innerHTML='<option value="">LLM: auto-detect</option>'+ps.map(p=>
+   `<option value="${p.name}">${p.name}${p.configured?' ✓':''} (${esc(p.default_model||'')})</option>`).join('');
+  const cfg=ps.filter(p=>p.configured).map(p=>p.name);
+  if(cfg.length)$('#mode').textContent='LLM available: '+cfg.join(', ');
+}catch(e){}})();
+
+function chosenDims(){return [...document.querySelectorAll('.dim:checked')].map(c=>c.value)}
+function body(){return {prompt:$('#prompt').value.trim()||null,
+  dims:chosenDims().length?chosenDims():null,
+  provider:$('#provider').value||null, model:$('#model').value.trim()||null,
+  quick:$('#quick').checked, ai_payloads:$('#aipayloads').checked}}
+
+$('#btnPlan').onclick=async()=>{
+  const p=$('#prompt').value.trim(); if(!p){alert('Type a prompt first');return}
+  $('#plan').style.display='block';$('#plan').innerHTML='Planning…';
+  try{const pl=await j('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:p,provider:$('#provider').value||null,model:$('#model').value||null})});
+    $('#plan').innerHTML=`<b>${pl.source==='llm'?'🧠 LLM plan':'🔑 keyword plan'}</b><br>
+      platforms: ${esc((pl.platforms||[]).join(', '))}<br>dimensions: <b>${esc((pl.dimensions||[]).join(', '))}</b><br>
+      ${esc(pl.notes||'')}<br><span class="mut">Press ▶ Run test to execute this.</span>`;
+    document.querySelectorAll('.dim').forEach(c=>c.checked=(pl.dimensions||[]).includes(c.value));
+  }catch(e){$('#plan').innerHTML='plan failed: '+esc(e.message)}
+};
+
+const STEPS=['auth','discovery','performance','limits','security','functionality','logic','ux','report'];
+let es=null;
+$('#btnRun').onclick=async()=>{
+  const b=body();
+  if(!b.prompt&&!b.dims){alert('Write a prompt or tick at least one dimension');return}
+  $('#btnRun').disabled=true;
+  try{
+    const r=await j('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+    liveView(r.run_id);
+  }catch(e){alert('start failed: '+e.message)}
+  $('#btnRun').disabled=false;
+};
+
+function liveView(rid){
+  $('#livecard').style.display='block';$('#trace').innerHTML='';
+  $('#steps').innerHTML=STEPS.map(s=>`<span class=step id=st-${s}>${s}</span>`).join('');
+  let n=0,total=0;
+  if(es)es.close();
+  es=new EventSource(`/api/run/${rid}/stream`);
+  es.onmessage=ev=>{
+    const d=JSON.parse(ev.data);
+    if(d.line==='__DONE__'){es.close();$('#btnRefresh').click();refreshRuns();
+      addLine(`— run ${d.status.toUpperCase()} —`,'ok');$('#pbar').style.width='100%';return}
+    n++;
+    addLine(`${d.ts}  ${d.line}`);
+    for(const s of STEPS){if(d.line.includes('['+s) || d.line.includes(s+']'))mark(s,'on')}
+    if(d.line.includes('[perf]')&&d.line.includes('->'))mark('performance','fin');
+    if(d.line.includes('[suite] done'))mark('logic','fin');
+    if(d.line.includes('[REPORT]'))mark('report','on');
+    if(d.line.startsWith('  Report:'))mark('report','fin');
+    total=Math.max(total,n);$('#pbar').style.width=Math.min(95,8+n*1.2)+'%';
+    const t=$('#trace');t.scrollTop=t.scrollHeight;
+  };
+  es.onerror=()=>{};
+}
+function mark(s,cls){const e=$('#st-'+s);if(e)e.className='step '+cls}
+function addLine(txt,forceCls){
+  let cls='';if(forceCls)cls=forceCls;
+  else if(/!|FAIL|ERROR|WRONG|PROBLEM/.test(txt))cls='hit';
+  else if(/OK|alive|done/.test(txt))cls='ok';
+  const el=document.createElement('div');
+  el.innerHTML=(cls?`<span class=${cls}>`:'<span>')+esc(txt)+'</span>';
+  $('#trace').appendChild(el);
+}
+$('#btnClear').onclick=()=>{if(es)es.close();$('#livecard').style.display='none'};
+
+/* ---------------- tabs / results ---------------- */
+const TABS=[['findings','Findings'],['performance','Performance'],['limits','Limits'],
+['func','Functionality'],['logic','Logic'],['ux','UX reviews'],['shots','Screenshots'],
+['reports','Reports']];
+$('#tabs').innerHTML=TABS.map((t,i)=>`<button class="tab${i?'':' sel'}" data-t="${t[0]}">${t[1]}</button>`).join('');
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');loadTab(b.dataset.t)});
+
+let lastReport=null;
+async function refreshAll(){ // pull latest report for charts
+  try{const rs=await j('/api/reports');if(rs.length){lastReport=await j('/api/report/'+rs[0].name);
+    $('#s-plat').textContent=lastReport.total??'–';$('#s-alive').textContent=lastReport.alive??'–';
+    $('#s-find').textContent=lastReport.findings??'–';$('#s-ch').textContent=lastReport.critical_high??'–';}}catch(e){}
+}
+$('#btnRefresh').onclick=async()=>{await refreshAll();loadTab(document.querySelector('.tab.sel').dataset.t)};
+
+async function loadTab(t){
+  const el=$('#tabbody');el.innerHTML='<span class=mut>loading…</span>';
+  try{
+    if(t==='findings'){const f=await j('/api/findings');
+      el.innerHTML=f.length?`<table><tr><th>Platform</th><th>Category</th><th>Type</th><th>Status</th><th>Severity</th><th>Payload</th></tr>`+
+        f.map(x=>`<tr><td>${esc(x.platform)}</td><td>${esc(x.category)}</td><td>${esc(x.finding_type)}</td>
+        <td>${esc(x.status)}</td><td><span class="sev ${esc(x.severity)}">${esc(x.severity)}</span></td>
+        <td class=mut title="${esc(x.endpoint)}">${esc((x.payload||'').slice(0,40))}</td></tr>`).join('')+'</table>'
+        :'<span class=mut>No findings yet.</span>';
+    }else if(t==='performance'){
+      const p=(lastReport?.suite?.performance)||{};const ks=Object.keys(p);
+      if(!ks.length){el.innerHTML='<span class=mut>No performance data — run a test with ⚡ Performance.</span>';return}
+      const mx=Math.max(...ks.map(k=>p[k].p95_ms||0),1);
+      el.innerHTML=`<table><tr><th>Platform</th><th>Avg ms</th><th>p95 latency</th><th>HTML size</th></tr>`+
+        ks.map(k=>`<tr><td>${esc(k)}</td><td>${p[k].avg_ms}</td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class=bar style="width:${Math.max(6,100*(p[k].p95_ms||0)/mx)}%"><i style="width:100%"></i></div>${p[k].p95_ms}ms</div></td>
+        <td>${(p[k].avg_html_bytes/1024).toFixed(1)} KB</td></tr>`).join('')+'</table>';
+    }else if(t==='limits'){
+      const l=lastReport?.suite?.limits;if(!l){el.innerHTML='<span class=mut>No limit data — run 🧱 Limits.</span>';return}
+      el.innerHTML=`<table><tr><th>Probe</th><th>HTTP</th><th>Time</th><th>Verdict</th></tr>`+
+        Object.entries(l).filter(([k,v])=>v.status!==undefined).map(([k,v])=>
+        `<tr><td>${esc(k)}</td><td>${v.status}</td><td>${v.ms}ms</td><td>${esc(v.verdict)}</td></tr>`).join('')+
+        `</table><p class=mut>Burst result: ${esc(JSON.stringify(l.burst_12x_root||{}))}</p>`;
+    }else if(t==='func'){
+      const f=lastReport?.suite?.functionality;if(!f){el.innerHTML='<span class=mut>No functionality data.</span>';return}
+      el.innerHTML=`<table><tr><th>Platform</th><th>Status</th><th>SPA</th><th>Title</th><th>Favicon</th><th>Viewport</th><th>Problems</th></tr>`+
+        Object.entries(f).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.http_status}</td>
+        <td>${v.is_spa?'✓':'✗'}</td><td>${v.has_title?'✓':'✗'}</td><td>${v.has_favicon?'✓':'✗'}</td>
+        <td>${v.has_meta_viewport?'✓':'✗'}</td><td class=mut>${esc((v.problems||[]).join(', ')||'none')}</td></tr>`).join('')+'</table>';
+    }else if(t==='logic'){
+      const g=lastReport?.suite?.logic;if(!g){el.innerHTML='<span class=mut>No logic data (needs auth token).</span>';return}
+      el.innerHTML='<pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(g,null,2))+'</pre>';
+    }else if(t==='ux'){
+      const u=lastReport?.ux_reviews;if(!u||!u.length){el.innerHTML='<span class=mut>No UX reviews yet — run 👁 UX/UI to capture screenshots + comments.</span>';return}
+      el.innerHTML=u.map(r=>{const rv=r.ux_review||{};
+        return `<div class=uxitem><b>${esc(r.name)}</b> <span class=badge>${esc(rv.source||'llm')}</span>
+        <span class=badge>${'★'.repeat(rv.overall_rating_1to5||0)}${'☆'.repeat(5-(rv.overall_rating_1to5||0))}</span>
+        ${r.screenshot?`<img src="/screenshots/${esc(r.screenshot)}" onclick="zoom(this.src)">`:''}
+        <div><i>"${esc(rv.first_impression||'')}"</i></div>
+        ${(rv.confusions||[]).map(c=>`<div style="color:var(--warn)">😕 ${esc(c)}</div>`).join('')}
+        ${(rv.accessibility_issues||[]).map(c=>`<div style="color:var(--bad)">♿ ${esc(c)}</div>`).join('')}
+        ${(rv.praise||[]).map(c=>`<div style="color:var(--ok)">👍 ${esc(c)}</div>`).join('')}
+        <div class=mut>${esc(r.url)} · HTTP ${esc(r.http_status)}</div></div>`}).join('');
+    }else if(t==='shots'){const ss=await j('/api/screenshots');
+      el.innerHTML=ss.length?`<div class=shots>`+ss.map(s=>
+        `<div class=shot><img src="/screenshots/${esc(s.name)}" loading=lazy onclick="zoom(this.src)">
+        <div class=cap>${esc(s.platform)} · ${esc(s.modified)}</div></div>`).join('')+`</div>`
+        :'<span class=mut>No screenshots yet — they appear after a UX/UI run.</span>';
+    }else if(t==='reports'){const rs=await j('/api/reports');
+      el.innerHTML=`<table><tr><th>Report</th><th>Size</th><th>When</th><th></th></tr>`+rs.map(r=>
+        `<tr><td>${esc(r.name)}</td><td>${(r.size/1024).toFixed(0)} KB</td><td class=mut>${esc(r.modified)}</td>
+        <td><a href="/api/report/${encodeURIComponent(r.name)}" download><button class=sec style="padding:4px 10px">⬇</button></a></td></tr>`).join('')+'</table>';
+    }
+  }catch(e){el.innerHTML='<span class=mut>'+esc(e.message)+'</span>'}
+}
+function zoom(src){$('#dlgimg').src=src;$('#dlg').showModal()}
+$('#dlg').onclick=()=>$('#dlg').close();
+
+async function refreshRuns(){try{const rs=await j('/api/runs');
+  $('#runs').innerHTML=rs.length?rs.slice(0,8).map(r=>
+   `<div><span class="pill ${r.status}">${r.status}</span> <b>${r.id}</b>
+    ${esc((r.spec&&(r.spec.prompt||r.spec.dims&&r.spec.dims.join('+')))||'')} 
+    ${r.summary?`· ${r.summary.findings} findings`:''}
+    <button class=sec style="padding:2px 8px;font-size:11px;float:right" onclick="liveView('${r.id}')">view</button></div>`).join('')
+   :'—';}catch(e){}}
+setInterval(refreshRuns,5000);refreshRuns();refreshAll();
+</script>
+</body>
+</html>
