@@ -247,6 +247,25 @@ def api_providers():
     return out
 
 
+_MODELS_CACHE = {}          # (provider, base_url) -> (timestamp, result)
+_MODELS_TTL = 300.0         # seconds -- live catalogs change rarely
+
+
+@app.get('/api/models')
+def api_models(provider: str, base_url: str | None = None,
+               refresh: bool = False):
+    """List models available for a provider (live /models endpoint with
+    curated fallback).  Used by the Web UI model picker."""
+    from core.llm.providers import list_provider_models
+    key = (provider, base_url or '')
+    hit = _MODELS_CACHE.get(key)
+    if not refresh and hit and time.time() - hit[0] < _MODELS_TTL:
+        return hit[1]
+    result = list_provider_models(provider, base_url=base_url)
+    _MODELS_CACHE[key] = (time.time(), result)
+    return result
+
+
 @app.post('/api/plan')
 def api_plan(body: PlanIn):
     llm = None

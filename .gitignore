@@ -1,6 +1,8 @@
-# Compiled and cache files
+# Python cache and compiled files
 __pycache__/
 *.pyc
 
-# Database files
-*.db
+# Environment variables
+.env
+.env.local
+.env.*

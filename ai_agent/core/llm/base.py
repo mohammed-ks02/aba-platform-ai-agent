@@ -186,6 +186,37 @@ class BaseProvider:
         """
         raise NotImplementedError
 
+    def list_models(self):
+        """Return the model ids this provider can serve.
+
+        Default implementation queries ``GET {base_url}/models`` (works for
+        every OpenAI-compatible server: Groq, NVIDIA, Ollama, vLLM...).
+        Providers with a different wire format override this.  Always
+        returns a plain list of strings; raises LLMError on failure so
+        callers can fall back to curated/static lists.
+        """
+        url = f'{self.base_url}/models'
+        headers = dict(self._headers())
+        req = urllib.request.Request(url, headers=headers, method='GET')
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                data = json.loads(r.read().decode('utf-8', 'replace'))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode('utf-8', 'replace')[:200]
+            raise LLMError(f'{self.name}: HTTP {e.code}: {body}') from e
+        except Exception as e:
+            raise LLMError(f'{self.name}: {e}') from e
+        items = data.get('data') or data.get('models') or []
+        out = []
+        for m in items:
+            if isinstance(m, str):
+                out.append(m)
+            elif isinstance(m, dict):
+                mid = m.get('id') or m.get('name') or m.get('model')
+                if mid:
+                    out.append(str(mid))
+        return sorted(set(out))
+
     def ping(self):
         """Cheap availability probe. Returns (ok, detail)."""
         try:
