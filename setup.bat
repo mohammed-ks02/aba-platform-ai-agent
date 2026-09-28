@@ -26,8 +26,16 @@ echo [3/4] Installing/updating dependencies from requirements.txt ...
 python -m pip install --upgrade pip >nul
 pip install -r requirements.txt || (echo ERROR: dependency install failed & exit /b 1)
 
-echo [4/4] Ensuring Playwright Chromium browser is installed ...
+echo [4/5] Ensuring Playwright Chromium browser is installed ...
 python -m playwright install chromium || (echo WARNING: chromium download failed - live/visual testing will fall back to urllib & exit /b 1)
+
+echo [5/5] Preparing .env config file...
+if not exist ".env" if exist "env.example" (
+    copy "env.example" ".env" >nul
+    echo  Created .env from env.example -- EDIT IT with your real keys and password!
+) else (
+    echo  .env already exists - keeping it untouched.
+)
 
 echo.
 echo =====================================================================

@@ -45,13 +45,29 @@ Linux/macOS:
 start, so after pulling new code you never need to reinstall manually — just
 run it again and the venv stays up to date automatically.
 
-Before running tests that hit staging, set credentials/env vars:
+Before running tests that hit staging, configure credentials/env vars.
+**Recommended: a `.env` file in the project root** — the agent auto-loads it
+on startup (no `set`/`export` needed). `setup.bat`/`setup.sh` create it for
+you from `env.example`; edit it with your real values:
+
+```ini
+ABA_USERNAME=test_02
+ABA_PASSWORD=<staging password>
+ABA_TENANT=arma
+GROQ_API_KEY=gsk_...
+NVIDIA_API_KEY=nvapi-...
+ABA_LLM_PROVIDER=groq
+ABA_LLM_MODEL=qwen/qwen3.8-27b
+```
+
+Alternatively you can still set them as environment variables in CMD:
 ```bat
 set ABA_USERNAME=test_02
 set ABA_PASSWORD=<staging password>
 set GROQ_API_KEY=gsk_...        &  set NVIDIA_API_KEY=nvapi-...
 set ABA_LLM_PROVIDER=groq
 ```
+(.env never overrides already-set environment variables; `.env` is gitignored.)
 
 ## Usage (CLI shortcuts, optional)
 

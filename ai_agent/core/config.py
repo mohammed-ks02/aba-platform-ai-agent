@@ -7,6 +7,9 @@ environment variable.
 """
 import os
 
+from .env_loader import ensure_loaded as _ensure_dotenv
+_ensure_dotenv()
+
 # ai_agent/ package root
 AGENT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

@@ -1,13 +1,17 @@
 """ABA Fusion Token Manager — auto-refresh every 12 minutes."""
-import urllib.request, json, time, base64, os
+import urllib.request, json, time, base64, os, sys
+
+# Load .env (project root) before reading credentials below.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from core.env_loader import ensure_loaded as _ensure_dotenv  # noqa: E402
+_ensure_dotenv()
 
 BASE = 'https://stg-login.abafusion.ai'
 DP = 'https://stg-dp.abafusion.ai/api/v1'
 UA = {'User-Agent': 'Hermes-Agent/1.0'}
-# Credentials come from environment variables (never commit real secrets):
-#   export ABA_USERNAME=test_02
-#   export ABA_PASSWORD='...'
-#   export ABA_TENANT=arma
+# Credentials come from environment variables or a .env file in the project
+# root (never commit real secrets):
+#   ABA_USERNAME / ABA_PASSWORD / ABA_TENANT
 CREDS = {
     'username': os.environ.get('ABA_USERNAME', ''),
     'password': os.environ.get('ABA_PASSWORD', ''),

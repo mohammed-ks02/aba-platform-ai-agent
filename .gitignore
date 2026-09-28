@@ -9,3 +9,5 @@ venv/
 
 # Generated reports and data artifacts
 ai_agent/data/
+# Local secrets (see env.example)
+.env
