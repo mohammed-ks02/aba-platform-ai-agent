@@ -1,0 +1,381 @@
+{
+  "ts": "2026-09-24T17:39:03.922455",
+  "total": 9,
+  "alive": 8,
+  "findings": 33,
+  "critical_high": 0,
+  "patterns": 1,
+  "platform_details": [
+    {
+      "key": "stg-agentic",
+      "name": "Agentic AI",
+      "base": "https://stg-agentic.abafusion.ai",
+      "type": "agentic",
+      "status": "alive"
+    },
+    {
+      "key": "stg-analytics",
+      "name": "Analytics",
+      "base": "https://stg-analytics.abafusion.ai",
+      "type": "analytics",
+      "status": "alive"
+    },
+    {
+      "key": "stg-dp",
+      "name": "Data Platform",
+      "base": "https://stg-dp.abafusion.ai",
+      "type": "data_platform",
+      "status": "alive"
+    },
+    {
+      "key": "stg-forge",
+      "name": "Fusion Forge",
+      "base": "https://stg-forge.abafusion.ai",
+      "type": "forge",
+      "status": "dead"
+    },
+    {
+      "key": "stg-mate",
+      "name": "Mate",
+      "base": "https://stg-mate.abafusion.ai",
+      "type": "mate",
+      "status": "alive"
+    },
+    {
+      "key": "stg-orbit",
+      "name": "Orbit",
+      "base": "https://stg-orbit.abafusion.ai",
+      "type": "orbit",
+      "status": "alive"
+    },
+    {
+      "key": "stg-orch",
+      "name": "Orchestration",
+      "base": "https://stg-orch.abafusion.ai",
+      "type": "orchestration",
+      "status": "alive"
+    },
+    {
+      "key": "stg-perf",
+      "name": "Performance",
+      "base": "https://stg-perf.abafusion.ai",
+      "type": "perf",
+      "status": "alive"
+    },
+    {
+      "key": "stg-pulse",
+      "name": "Pulse",
+      "base": "https://stg-pulse.abafusion.ai",
+      "type": "pulse",
+      "status": "alive"
+    }
+  ],
+  "finding_details": [
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "boundary",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "empty",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xxe",
+      "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssti",
+      "payload": "{{7*7}}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "redirect",
+      "payload": "//evil.com",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssrf",
+      "payload": "http://127.0.0.1:8080/admin",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "nosql",
+      "payload": "{\"$ne\": null}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "cmd",
+      "payload": "; ls -la",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "path",
+      "payload": "../../../etc/passwd",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "sql",
+      "payload": "' OR '1'='1",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xss",
+      "payload": "<script>alert(1)</script>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "boundary",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "empty",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xxe",
+      "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssti",
+      "payload": "{{7*7}}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "redirect",
+      "payload": "//evil.com",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssrf",
+      "payload": "http://127.0.0.1:8080/admin",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "nosql",
+      "payload": "{\"$ne\": null}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "cmd",
+      "payload": "; ls -la",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "path",
+      "payload": "../../../etc/passwd",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "sql",
+      "payload": "' OR '1'='1",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xss",
+      "payload": "<script>alert(1)</script>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "boundary",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "empty",
+      "payload": "",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xxe",
+      "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssti",
+      "payload": "{{7*7}}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "redirect",
+      "payload": "//evil.com",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssrf",
+      "payload": "http://127.0.0.1:8080/admin",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "nosql",
+      "payload": "{\"$ne\": null}",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "cmd",
+      "payload": "; ls -la",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "path",
+      "payload": "../../../etc/passwd",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "sql",
+      "payload": "' OR '1'='1",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xss",
+      "payload": "<script>alert(1)</script>",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    }
+  ],
+  "pattern_details": [
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:other",
+      "category": "other",
+      "confidence": 0.6,
+      "times_seen": 33
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Runtime has zero third-party deps (Python stdlib only).
+# Test-time dependency:
+pytest>=8.0
+playwright>=1.44

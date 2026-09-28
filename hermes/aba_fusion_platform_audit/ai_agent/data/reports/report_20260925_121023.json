@@ -1,0 +1,243 @@
+{
+  "ts": "2026-09-25T12:10:16.858947",
+  "total": 9,
+  "alive": 9,
+  "findings": 11,
+  "critical_high": 0,
+  "patterns": 8,
+  "platform_details": [
+    {
+      "key": "stg-agentic",
+      "name": "Agentic AI",
+      "base": "https://stg-agentic.abafusion.ai",
+      "type": "agentic",
+      "status": "alive"
+    },
+    {
+      "key": "stg-analytics",
+      "name": "Analytics",
+      "base": "https://stg-analytics.abafusion.ai",
+      "type": "analytics",
+      "status": "alive"
+    },
+    {
+      "key": "stg-dp",
+      "name": "Data Platform",
+      "base": "https://stg-dp.abafusion.ai",
+      "type": "data_platform",
+      "status": "alive"
+    },
+    {
+      "key": "stg-forge",
+      "name": "Fusion Forge",
+      "base": "https://stg-forge.abafusion.ai/fusionforge/",
+      "type": "forge",
+      "status": "alive"
+    },
+    {
+      "key": "stg-mate",
+      "name": "Mate",
+      "base": "https://stg-mate.abafusion.ai",
+      "type": "mate",
+      "status": "alive"
+    },
+    {
+      "key": "stg-orbit",
+      "name": "Orbit",
+      "base": "https://stg-orbit.abafusion.ai",
+      "type": "orbit",
+      "status": "alive"
+    },
+    {
+      "key": "stg-orch",
+      "name": "Orchestration",
+      "base": "https://stg-orch.abafusion.ai",
+      "type": "orchestration",
+      "status": "alive"
+    },
+    {
+      "key": "stg-perf",
+      "name": "Performance",
+      "base": "https://stg-perf.abafusion.ai",
+      "type": "perf",
+      "status": "alive"
+    },
+    {
+      "key": "stg-pulse",
+      "name": "Pulse",
+      "base": "https://stg-pulse.abafusion.ai",
+      "type": "pulse",
+      "status": "alive"
+    }
+  ],
+  "finding_details": [
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "boundary",
+      "payload": "",
+      "status": 422,
+      "finding_type": "The endpoint correctly rejects an empty string payload with ",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "empty",
+      "payload": "",
+      "status": 422,
+      "finding_type": "The endpoint correctly rejects an empty request body with a ",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xxe",
+      "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>",
+      "status": 422,
+      "finding_type": "The endpoint returned a 422 validation error indicating the ",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssti",
+      "payload": "{{7*7}}",
+      "status": 422,
+      "finding_type": "The endpoint returned a 422 validation error indicating the ",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "redirect",
+      "payload": "//evil.com",
+      "status": 422,
+      "finding_type": "The endpoint returned a 422 validation error because the pay",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "ssrf",
+      "payload": "http://127.0.0.1:8080/admin",
+      "status": 422,
+      "finding_type": "The 422 response with validation_error indicates the request",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "nosql",
+      "payload": "{\"$ne\": null}",
+      "status": 422,
+      "finding_type": "The 422 response with validation_error indicates proper inpu",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "cmd",
+      "payload": "; ls -la",
+      "status": 422,
+      "finding_type": "The endpoint returned a 422 validation error indicating the ",
+      "severity": "info"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "path",
+      "payload": "../../../etc/passwd",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "sql",
+      "payload": "' OR '1'='1",
+      "status": 422,
+      "finding_type": "other",
+      "severity": "low"
+    },
+    {
+      "platform": "stg-dp",
+      "endpoint": "https://stg-dp-mgr.abafusion.ai/connectors",
+      "category": "xss",
+      "payload": "<script>alert(1)</script>",
+      "status": 422,
+      "finding_type": "The 422 response with validation_error indicates the endpoin",
+      "severity": "info"
+    }
+  ],
+  "pattern_details": [
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The endpoint returned a 422 validation error indicating the ",
+      "category": "The endpoint returned a 422 validation error indicating the ",
+      "confidence": 0.6,
+      "times_seen": 3
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:other",
+      "category": "other",
+      "confidence": 0.6,
+      "times_seen": 2
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The 422 response with validation_error indicates the endpoin",
+      "category": "The 422 response with validation_error indicates the endpoin",
+      "confidence": 0.5,
+      "times_seen": 1
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The 422 response with validation_error indicates proper inpu",
+      "category": "The 422 response with validation_error indicates proper inpu",
+      "confidence": 0.5,
+      "times_seen": 1
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The 422 response with validation_error indicates the request",
+      "category": "The 422 response with validation_error indicates the request",
+      "confidence": 0.5,
+      "times_seen": 1
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The endpoint returned a 422 validation error because the pay",
+      "category": "The endpoint returned a 422 validation error because the pay",
+      "confidence": 0.5,
+      "times_seen": 1
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The endpoint correctly rejects an empty request body with a ",
+      "category": "The endpoint correctly rejects an empty request body with a ",
+      "confidence": 0.5,
+      "times_seen": 1
+    },
+    {
+      "platform": "stg-dp",
+      "pattern": "stg-dp:The endpoint correctly rejects an empty string payload with ",
+      "category": "The endpoint correctly rejects an empty string payload with ",
+      "confidence": 0.5,
+      "times_seen": 1
+    }
+  ],
+  "llm": {
+    "provider": "nvidia",
+    "chain": [
+      {
+        "provider": "nvidia",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b",
+        "base_url": "https://integrate.api.nvidia.com/v1"
+      }
+    ]
+  },
+  "executive_summary": "Security scan of 9 staging endpoints completed with zero critical or high-severity findings. All 11 findings are informational, confirming the `/connectors` endpoint on `stg-dp-mgr.abafusion.ai` correctly rejects malicious payloads (XXE, SSTI, SSRF, NoSQL injection, command injection, open redirect, and boundary/empty inputs) with HTTP 422 validation errors. Input validation is functioning as designed across all tested attack categories. No exploitable vulnerabilities were detected. The platform demonstrates robust defensive controls at this endpoint. Recommend maintaining current validation logic and expanding coverage to remaining endpoints."
+}

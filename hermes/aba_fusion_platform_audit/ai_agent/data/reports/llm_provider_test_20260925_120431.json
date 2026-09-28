@@ -1,0 +1,28 @@
+{
+  "groq:openai/gpt-oss-120b": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "smoke": {
+      "check": "smoke_chat",
+      "ok": true,
+      "latency_s": 2.63,
+      "reply": "PONG"
+    },
+    "ai_features": {
+      "analyze_finding": {
+        "ok": true,
+        "is_real": false,
+        "severity": "info",
+        "analysis": "The request containing the XSS payload was rejected with HTTP 422 and a validation_error response indicating a model attribute type mismatch. The payload was no"
+      },
+      "generate_payloads": {
+        "ok": false,
+        "payloads": []
+      },
+      "executive_summary": {
+        "ok": true,
+        "text": "The recent ABA\u202fFusion staging scan covered nine live assets and identified a total of 44 security findings.\u202fAll nine hosts responded, confirming they are reachable and in\u2011scope.\u202fImportantly, none of t"
+      }
+    }
+  }
+}

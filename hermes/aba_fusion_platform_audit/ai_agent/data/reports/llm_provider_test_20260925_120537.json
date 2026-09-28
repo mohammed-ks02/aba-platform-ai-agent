@@ -1,0 +1,28 @@
+{
+  "nvidia:nvidia/nemotron-3-ultra-550b-a55b": {
+    "provider": "nvidia",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "smoke": {
+      "check": "smoke_chat",
+      "ok": true,
+      "latency_s": 1.24,
+      "reply": "PONG"
+    },
+    "ai_features": {
+      "analyze_finding": {
+        "ok": true,
+        "is_real": false,
+        "severity": "info",
+        "analysis": "The HTTP 422 response with validation_error indicates the XSS payload '<script>alert(1)</script>' was rejected by server-side input validation before processing"
+      },
+      "generate_payloads": {
+        "ok": false,
+        "payloads": []
+      },
+      "executive_summary": {
+        "ok": true,
+        "text": "The scan covered nine staging hosts, all of which responded. Across those targets the scanner recorded 44 total findings, but none were rated critical or high severity. The \u201ctop_findings\u201d list is empt"
+      }
+    }
+  }
+}

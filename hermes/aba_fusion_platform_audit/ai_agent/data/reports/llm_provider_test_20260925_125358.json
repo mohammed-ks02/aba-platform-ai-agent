@@ -1,0 +1,13 @@
+{
+  "nvidia:z-ai/glm-5.3-flash": {
+    "provider": "nvidia",
+    "model": "z-ai/glm-5.3-flash",
+    "smoke": {
+      "check": "smoke_chat",
+      "ok": true,
+      "latency_s": 60.36,
+      "reply": "The user has given me a very simple instruction: reply with exactly \"PONG\". This"
+    },
+    "error": "'list' object has no attribute 'get'"
+  }
+}
