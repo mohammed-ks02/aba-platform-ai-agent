@@ -38,8 +38,13 @@ def _pct(values, q):
     return s[idx]
 
 
-def _timed_request(method, url, **kw):
-    """req() + wall-clock timing. Returns (result, elapsed_ms)."""
+def _timed_request(method, url, body=None, **kw):
+    """req() + wall-clock timing. Returns (result, elapsed_ms).
+
+    Accepts ``body`` positionally (call sites in test_logic pass it that
+    way) so the signature matches every caller regardless of token kwarg."""
+    if body is not None:
+        kw['body'] = body
     t0 = time.monotonic()
     r = req(method, url, **kw)
     return r, round((time.monotonic() - t0) * 1000, 1)
