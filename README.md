@@ -27,7 +27,33 @@ platforms (9 targets under `*.abafusion.ai`).
 └── webui/                  # FastAPI web interface (app.py + static/index.html)
                             #   run: python webui/app.py  -> http://127.0.0.1:8787
 
-## Usage
+## Quick start (one command)
+
+Windows CMD:
+```bat
+setup.bat        :: creates .venv, installs requirements + Playwright Chromium
+run.bat          :: starts the Web UI -> http://127.0.0.1:8787
+```
+
+Linux/macOS:
+```bash
+./setup.sh       # creates .venv, installs requirements + Playwright Chromium
+./run.sh         # starts the Web UI -> http://127.0.0.1:8787
+```
+
+`run.bat` / `run.sh` re-syncs dependencies from `requirements.txt` on every
+start, so after pulling new code you never need to reinstall manually — just
+run it again and the venv stays up to date automatically.
+
+Before running tests that hit staging, set credentials/env vars:
+```bat
+set ABA_USERNAME=test_02
+set ABA_PASSWORD=<staging password>
+set GROQ_API_KEY=gsk_...        &  set NVIDIA_API_KEY=nvapi-...
+set ABA_LLM_PROVIDER=groq
+```
+
+## Usage (CLI shortcuts, optional)
 
 ```bash
 python ai_agent/agent.py            # full run

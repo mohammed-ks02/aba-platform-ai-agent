@@ -1,6 +1,11 @@
 # Python compiled files and cache
 __pycache__/
 *.pyc
+.pytest_cache/
+
+# Virtual environments (created by setup.bat / setup.sh)
+.venv/
+venv/
 
 # Generated reports and data artifacts
-ai_agent/data/reports/
+ai_agent/data/
