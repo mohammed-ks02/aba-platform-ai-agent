@@ -1,0 +1,137 @@
+{
+  "ts": "2026-09-24T17:48:45.809882",
+  "engine": "playwright/chromium",
+  "platforms_total": 9,
+  "platforms_rendered": 1,
+  "results": [
+    {
+      "platform": "stg-dp",
+      "name": "Data Platform",
+      "url": "https://stg-dp.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-dp.abafusion.ai/",
+      "title": "Fusion Access",
+      "body_chars": 0,
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 401 ()",
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "request_failures": [
+        "https://stg-login.abafusion.ai/login?redirect_uri=https%3A%2F%2Fstg-dp.abafusion (net::ERR_ABORTED)"
+      ],
+      "rendered": false
+    },
+    {
+      "platform": "stg-analytics",
+      "name": "Analytics",
+      "url": "https://stg-analytics.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-analytics.abafusion.ai/",
+      "title": "Analytics",
+      "body_chars": 0,
+      "console_errors": [],
+      "request_failures": [],
+      "rendered": false
+    },
+    {
+      "platform": "stg-pulse",
+      "name": "Pulse",
+      "url": "https://stg-pulse.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-pulse.abafusion.ai/",
+      "title": "Pulse",
+      "body_chars": 0,
+      "console_errors": [],
+      "request_failures": [],
+      "rendered": false
+    },
+    {
+      "platform": "stg-orbit",
+      "name": "Orbit",
+      "url": "https://stg-orbit.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-orbit.abafusion.ai/",
+      "title": "Orbit",
+      "body_chars": 0,
+      "console_errors": [],
+      "request_failures": [],
+      "rendered": false
+    },
+    {
+      "platform": "stg-mate",
+      "name": "Mate",
+      "url": "https://stg-mate.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-mate.abafusion.ai/",
+      "title": "MATE",
+      "body_chars": 63,
+      "console_errors": [],
+      "request_failures": [],
+      "rendered": true
+    },
+    {
+      "platform": "stg-perf",
+      "name": "Performance",
+      "url": "https://stg-perf.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-perf.abafusion.ai/",
+      "title": "Fusion Access",
+      "body_chars": 0,
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 401 ()",
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "request_failures": [
+        "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100..900;1,1 (net::ERR_BLOCKED_BY_ORB)"
+      ],
+      "rendered": false
+    },
+    {
+      "platform": "stg-agentic",
+      "name": "Agentic AI",
+      "url": "https://stg-agentic.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-agentic.abafusion.ai/",
+      "title": "Fusion Access",
+      "body_chars": 0,
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 401 ()",
+        "Failed to load resource: the server responded with a status of 401 ()",
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "request_failures": [
+        "https://stg-agentic.abafusion.ai/health_check (net::ERR_ABORTED)",
+        "https://stg-agentic.abafusion.ai/api/v1/flows/basic_examples/ (net::ERR_ABORTED)"
+      ],
+      "rendered": false
+    },
+    {
+      "platform": "stg-orch",
+      "name": "Orchestration",
+      "url": "https://stg-orch.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-orch.abafusion.ai/",
+      "title": "",
+      "body_chars": 0,
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "request_failures": [],
+      "rendered": false
+    },
+    {
+      "platform": "stg-forge",
+      "name": "Fusion Forge",
+      "url": "https://stg-forge.abafusion.ai",
+      "http_status": 200,
+      "final_url": "https://stg-forge.abafusion.ai/fusionforge/",
+      "title": "Fusion Forge Studio Local",
+      "body_chars": 2649,
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 401 ()"
+      ],
+      "request_failures": [],
+      "rendered": false
+    }
+  ]
+}

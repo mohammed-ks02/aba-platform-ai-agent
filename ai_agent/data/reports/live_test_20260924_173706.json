@@ -1,0 +1,97 @@
+{
+  "ts": "2026-09-24T17:37:06.992480",
+  "platforms_total": 9,
+  "platforms_alive": 8,
+  "results": [
+    {
+      "platform": "stg-dp",
+      "name": "Data Platform",
+      "base": "https://stg-dp.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Data Platform",
+      "content_type": "text/html",
+      "api": {
+        "alive": false,
+        "status": 0
+      },
+      "mgr": {
+        "alive": false,
+        "status": 0
+      }
+    },
+    {
+      "platform": "stg-analytics",
+      "name": "Analytics",
+      "base": "https://stg-analytics.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Analytics",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-pulse",
+      "name": "Pulse",
+      "base": "https://stg-pulse.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Pulse",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-orbit",
+      "name": "Orbit",
+      "base": "https://stg-orbit.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Orbit",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-mate",
+      "name": "Mate",
+      "base": "https://stg-mate.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "MATE",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-perf",
+      "name": "Performance",
+      "base": "https://stg-perf.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "",
+      "content_type": "text/html; charset=utf-8"
+    },
+    {
+      "platform": "stg-agentic",
+      "name": "Agentic AI",
+      "base": "https://stg-agentic.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Agentic AI",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-orch",
+      "name": "Orchestration",
+      "base": "https://stg-orch.abafusion.ai",
+      "alive": true,
+      "http_status": 200,
+      "title": "Fusion Automation",
+      "content_type": "text/html"
+    },
+    {
+      "platform": "stg-forge",
+      "name": "Fusion Forge",
+      "base": "https://stg-forge.abafusion.ai",
+      "alive": false,
+      "http_status": 0,
+      "title": "",
+      "content_type": ""
+    }
+  ],
+  "findings": []
+}

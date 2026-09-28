@@ -59,12 +59,18 @@ class Run:
     def __init__(self, rid, spec):
         self.id = rid
         self.spec = spec                  # what the user asked for
-        self.status = 'queued'            # queued|running|done|error
+        self.status = 'queued'            # queued|running|done|error|stopped
         self.started = datetime.now().isoformat(timespec='seconds')
         self.finished = None
         self.q = queue.Queue()
         self.report = None                # filled when done
         self.error = None
+        self.stop_requested = threading.Event()
+
+    def request_stop(self):
+        """Mark the run for cancellation; helpers raise Aborted soon after."""
+        self.stop_requested.set()
+        self.trace('[web] STOP requested - cancelling at next step...')
 
     def trace(self, msg):
         self.q.put({'ts': datetime.now().strftime('%H:%M:%S'),
@@ -100,6 +106,8 @@ def _apply_llm_env(spec):
 def _execute(run):
     """Run the requested dimensions inside a worker thread."""
     spec = run.spec
+    from core.http_client import Aborted, set_abort_check
+    set_abort_check(run.stop_requested.is_set)
     try:
         run.status = 'running'
         run.trace(f'[web] run {run.id} started: {json.dumps({k: v for k, v in spec.items() if k != "prompt"})[:200]}')
@@ -121,8 +129,8 @@ def _execute(run):
         except Exception as e:
             run.trace(f'[llm] init failed: {e}')
 
-        run.trace('[auth] obtaining JWT...')
-        token = R.get_token()
+        run.trace('[auth] obtaining JWT (timeout 20s)...')
+        token = R.get_token(trace_cb=run.trace)
         run.trace(f'[auth] {"OK" if token else "no token (public tests only)"}')
 
         dims = [d for d in spec.get('dims', []) if d]
@@ -165,11 +173,15 @@ def _execute(run):
         run.status = 'done'
         run.trace(f'[web] finished: {rpt["findings"]} findings, '
                   f'report saved')
+    except Aborted:
+        run.status = 'stopped'
+        run.trace('[web] run stopped by user')
     except Exception as e:
         run.status = 'error'
         run.error = str(e)[:300]
         run.trace(f'[web] ERROR: {e}')
     finally:
+        set_abort_check(None)
         run.finished = datetime.now().isoformat(timespec='seconds')
         run.q.put({'ts': datetime.now().strftime('%H:%M:%S'),
                    'line': '__DONE__', 'status': run.status})
@@ -284,6 +296,17 @@ def api_run_get(rid: str):
     if not run:
         raise HTTPException(404, 'unknown run')
     return {**run.brief(), 'report': run.report}
+
+
+@app.post('/api/run/{rid}/stop')
+def api_run_stop(rid: str):
+    run = RUNS.get(rid)
+    if not run:
+        raise HTTPException(404, 'unknown run')
+    if run.status in ('done', 'error', 'stopped'):
+        return {'ok': False, 'status': run.status}
+    run.request_stop()
+    return {'ok': True, 'status': run.status}
 
 
 @app.get('/api/run/{rid}/stream')

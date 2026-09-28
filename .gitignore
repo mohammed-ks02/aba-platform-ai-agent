@@ -1,4 +1,6 @@
+# Python compiled files and cache
 __pycache__/
 *.pyc
-.pytest_cache/
-data/
+
+# Generated reports and data artifacts
+ai_agent/data/reports/

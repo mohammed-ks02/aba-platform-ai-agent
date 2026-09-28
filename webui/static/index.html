@@ -34,6 +34,7 @@ label.chk input{accent-color:var(--acc)}
 button{background:var(--acc);color:#fff;border:0;border-radius:8px;
 padding:9px 18px;font:600 14px inherit;cursor:pointer}
 button.sec{background:var(--panel2);border:1px solid var(--bord);color:var(--tx);font-weight:500}
+button.stop{background:#c0392b;color:#fff;font-weight:600}
 button:disabled{opacity:.45;cursor:not-allowed}
 .plan{background:#12203a;border:1px solid #2b4a7a;border-radius:8px;
 padding:10px 12px;margin-top:10px;font-size:13px;display:none}
@@ -125,7 +126,7 @@ dialog img{max-width:100%;max-height:85vh;display:block}
     <div class="steps" id="steps"></div>
     <div class="progress"><i id="pbar"></i></div>
     <div id="trace"></div>
-    <div class="row"><button class="sec" id="btnClear">Close view</button></div>
+    <div class="row"><button class="stop" id="btnStop" style="display:none">⏹ Stop run</button><button class="sec" id="btnClear">Close view</button></div>
   </div>
 
   <div class="card">
@@ -194,7 +195,12 @@ $('#btnPlan').onclick=async()=>{
 };
 
 const STEPS=['auth','discovery','performance','limits','security','functionality','logic','ux','report'];
-let es=null;
+let es=null, curRun=null;
+$('#btnStop').onclick=async()=>{
+  if(!curRun)return;
+  $('#btnStop').disabled=true;addLine('stop requested…','hit');
+  try{await j(`/api/run/${curRun}/stop`,{method:'POST'})}catch(e){addLine('stop failed: '+e.message,'hit')}
+};
 $('#btnRun').onclick=async()=>{
   const b=body();
   if(!b.prompt&&!b.dims){alert('Write a prompt or tick at least one dimension');return}
@@ -207,7 +213,9 @@ $('#btnRun').onclick=async()=>{
 };
 
 function liveView(rid){
+  curRun=rid;
   $('#livecard').style.display='block';$('#trace').innerHTML='';
+  $('#btnStop').style.display='inline-block';$('#btnStop').disabled=false;
   $('#steps').innerHTML=STEPS.map(s=>`<span class=step id=st-${s}>${s}</span>`).join('');
   let n=0,total=0;
   if(es)es.close();
@@ -215,7 +223,8 @@ function liveView(rid){
   es.onmessage=ev=>{
     const d=JSON.parse(ev.data);
     if(d.line==='__DONE__'){es.close();$('#btnRefresh').click();refreshRuns();
-      addLine(`— run ${d.status.toUpperCase()} —`,'ok');$('#pbar').style.width='100%';return}
+      addLine(`— run ${d.status.toUpperCase()} —`,d.status==='stopped'?'hit':'ok');
+      $('#pbar').style.width='100%';$('#btnStop').style.display='none';curRun=null;return}
     n++;
     addLine(`${d.ts}  ${d.line}`);
     for(const s of STEPS){if(d.line.includes('['+s) || d.line.includes(s+']'))mark(s,'on')}
@@ -237,7 +246,7 @@ function addLine(txt,forceCls){
   el.innerHTML=(cls?`<span class=${cls}>`:'<span>')+esc(txt)+'</span>';
   $('#trace').appendChild(el);
 }
-$('#btnClear').onclick=()=>{if(es)es.close();$('#livecard').style.display='none'};
+$('#btnClear').onclick=()=>{if(es)es.close();if(curRun){try{j(`/api/run/${curRun}/stop`,{method:'POST'})}catch(e){}}$('#btnStop').style.display='none';$('#livecard').style.display='none'};
 
 /* ---------------- tabs / results ---------------- */
 const TABS=[['findings','Findings'],['performance','Performance'],['limits','Limits'],

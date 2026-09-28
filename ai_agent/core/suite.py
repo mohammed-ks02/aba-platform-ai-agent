@@ -22,7 +22,7 @@ import time
 from datetime import datetime
 
 from .config import CONFIG, PLATFORMS
-from .http_client import req, discover
+from .http_client import req, discover, check_abort
 
 
 # ---------------------------------------------------------------- helpers
@@ -266,19 +266,29 @@ def run_suite(mem, token='', dims=('performance', 'limits', 'functionality',
     trace = trace_cb or (lambda m: None)
     results = {}
     if 'performance' in dims:
+        check_abort()
+        trace('[suite] performance...')
         results['performance'] = test_performance(
             mem, keys=keys, samples=3 if quick else 5, token=token,
             trace_cb=trace)
     if 'limits' in dims:
+        check_abort()
+        trace('[suite] limits...')
         results['limits'] = test_limits(mem, keys=keys, token=token,
                                         trace_cb=trace)
     if 'functionality' in dims:
+        check_abort()
+        trace('[suite] functionality...')
         results['functionality'] = test_functionality(
             mem, keys=keys, token=token, trace_cb=trace)
     if 'logic' in dims:
+        check_abort()
+        trace('[suite] logic...')
         results['logic'] = test_logic(mem, keys=keys, token=token,
                                       trace_cb=trace)
     if 'security' in dims and security_fn is not None:
+        check_abort()
+        trace('[suite] security fuzz...')
         results['security'] = {'findings_recorded': security_fn(
             mem, token, quick=quick, llm=llm_holder)}
     trace(f'[suite] done: dimensions={list(results)}')

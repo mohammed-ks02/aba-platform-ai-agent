@@ -37,22 +37,23 @@ from datetime import datetime
 if __package__ in (None, ''):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from core.config import CONFIG, PLATFORMS, FUZZ, CONNECTOR_TYPES
-    from core.http_client import req, discover
+    from core.http_client import req, discover, check_abort
     from core.classifier import classify
     from core.memory import Memory
     from core.llm import LLMClient, analyze_finding, generate_payloads, \
         executive_summary
 else:
     from .config import CONFIG, PLATFORMS, FUZZ, CONNECTOR_TYPES
-    from .http_client import req, discover
+    from .http_client import req, discover, check_abort
     from .classifier import classify
     from .memory import Memory
     from .llm import (LLMClient, analyze_finding, generate_payloads,
                       executive_summary)
 
 
-def get_token():
+def get_token(trace_cb=None):
     """Return a valid access token or '' if auth is unavailable."""
+    trace = trace_cb or (lambda m: None)
     try:
         from .token_manager import TokenManager
     except ImportError:  # pragma: no cover - direct-script fallback
@@ -60,6 +61,7 @@ def get_token():
     try:
         return TokenManager().ensure_valid()
     except Exception as e:
+        trace(f'  Token: FAIL ({str(e)[:120]})')
         print(f'  Token: FAIL ({e})')
         return ''
 
@@ -100,6 +102,7 @@ def run_fuzz(mem, token, quick=False, llm=None, trace_cb=None,
         mgr = info['mgr']
         types = CONNECTOR_TYPES[:1] if quick else ['bigquery', 'mongodb', 'slack']
         for ct in types:
+            check_abort()
             trace(f'  > {key}/{ct}')
             for cat, payloads in FUZZ.items():
                 use = payloads[:1]

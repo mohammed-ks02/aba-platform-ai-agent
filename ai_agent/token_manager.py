@@ -74,7 +74,7 @@ class TokenManager:
             f'{BASE}/api/v1/auth/login',
             data=json.dumps(CREDS).encode(),
             headers={'Content-Type': 'application/json', **UA})
-        resp = urllib.request.urlopen(req, timeout=15)
+        resp = urllib.request.urlopen(req, timeout=20)
         data = json.loads(resp.read().decode())
 
         self.access_token = data.get('accessToken')
