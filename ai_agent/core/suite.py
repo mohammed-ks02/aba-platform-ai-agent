@@ -22,7 +22,7 @@ import time
 from datetime import datetime
 
 from .config import CONFIG, PLATFORMS
-from .http_client import req, discover
+from .http_client import req, discover, check_abort
 
 
 # ---------------------------------------------------------------- helpers
@@ -38,8 +38,13 @@ def _pct(values, q):
     return s[idx]
 
 
-def _timed_request(method, url, **kw):
-    """req() + wall-clock timing. Returns (result, elapsed_ms)."""
+def _timed_request(method, url, body=None, **kw):
+    """req() + wall-clock timing. Returns (result, elapsed_ms).
+
+    Accepts ``body`` positionally (call sites in test_logic pass it that
+    way) so the signature matches every caller regardless of token kwarg."""
+    if body is not None:
+        kw['body'] = body
     t0 = time.monotonic()
     r = req(method, url, **kw)
     return r, round((time.monotonic() - t0) * 1000, 1)
@@ -211,8 +216,8 @@ def test_logic(mem, keys=None, token='', trace_cb=None):
             'source_config': {'host': 'example.com'}}
 
     # 1. idempotency: same POST twice
-    r1, m1 = _timed_request('POST', f'{mgr}/connectors', body, token)
-    r2, m2 = _timed_request('POST', f'{mgr}/connectors', body, token)
+    r1, m1 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
+    r2, m2 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
     dup_created = r1['status'] < 400 and r2['status'] < 400
     out['idempotent_post'] = {'first': r1['status'], 'second': r2['status'],
                               'duplicate_allowed': dup_created}
@@ -234,7 +239,7 @@ def test_logic(mem, keys=None, token='', trace_cb=None):
 
     # 3. validation semantics: bad type should be 4xx not 5xx
     bad = {'name': 12345, 'type': ['not-a-string'], 'source_config': 'flat'}
-    rb, _ = _timed_request('POST', f'{mgr}/connectors', bad, token)
+    rb, _ = _timed_request('POST', f'{mgr}/connectors', bad, token=token)
     ok_sem = 400 <= rb['status'] < 500
     out['validation_semantics'] = {'status': rb['status'], 'correct': ok_sem}
     trace(f'[logic] malformed payload -> {rb["status"]} '
@@ -266,19 +271,29 @@ def run_suite(mem, token='', dims=('performance', 'limits', 'functionality',
     trace = trace_cb or (lambda m: None)
     results = {}
     if 'performance' in dims:
+        check_abort()
+        trace('[suite] performance...')
         results['performance'] = test_performance(
             mem, keys=keys, samples=3 if quick else 5, token=token,
             trace_cb=trace)
     if 'limits' in dims:
+        check_abort()
+        trace('[suite] limits...')
         results['limits'] = test_limits(mem, keys=keys, token=token,
                                         trace_cb=trace)
     if 'functionality' in dims:
+        check_abort()
+        trace('[suite] functionality...')
         results['functionality'] = test_functionality(
             mem, keys=keys, token=token, trace_cb=trace)
     if 'logic' in dims:
+        check_abort()
+        trace('[suite] logic...')
         results['logic'] = test_logic(mem, keys=keys, token=token,
                                       trace_cb=trace)
     if 'security' in dims and security_fn is not None:
+        check_abort()
+        trace('[suite] security fuzz...')
         results['security'] = {'findings_recorded': security_fn(
             mem, token, quick=quick, llm=llm_holder)}
     trace(f'[suite] done: dimensions={list(results)}')

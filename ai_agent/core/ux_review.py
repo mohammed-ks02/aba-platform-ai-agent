@@ -165,9 +165,11 @@ def review_platform(key, llm=None, headless=True, slow_mo=0):
 
 
 def review_all(llm=None, keys=None, headless=True, slow_mo=0, trace_cb=None):
+    from .http_client import check_abort
     trace = trace_cb or (lambda m: None)
     out = []
     for key in (keys or PLATFORMS):
+        check_abort()
         trace(f'[ux] reviewing {key} in Chromium ...')
         r = review_platform(key, llm=llm, headless=headless, slow_mo=slow_mo)
         rv = r.get('ux_review', {})

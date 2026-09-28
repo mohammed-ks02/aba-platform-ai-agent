@@ -34,6 +34,7 @@ label.chk input{accent-color:var(--acc)}
 button{background:var(--acc);color:#fff;border:0;border-radius:8px;
 padding:9px 18px;font:600 14px inherit;cursor:pointer}
 button.sec{background:var(--panel2);border:1px solid var(--bord);color:var(--tx);font-weight:500}
+button.stop{background:#c0392b;color:#fff;font-weight:600}
 button:disabled{opacity:.45;cursor:not-allowed}
 .plan{background:#12203a;border:1px solid #2b4a7a;border-radius:8px;
 padding:10px 12px;margin-top:10px;font-size:13px;display:none}
@@ -125,7 +126,7 @@ dialog img{max-width:100%;max-height:85vh;display:block}
     <div class="steps" id="steps"></div>
     <div class="progress"><i id="pbar"></i></div>
     <div id="trace"></div>
-    <div class="row"><button class="sec" id="btnClear">Close view</button></div>
+    <div class="row"><button class="stop" id="btnStop" style="display:none">⏹ Stop run</button><button class="sec" id="btnClear">Close view</button></div>
   </div>
 
   <div class="card">
@@ -194,7 +195,12 @@ $('#btnPlan').onclick=async()=>{
 };
 
 const STEPS=['auth','discovery','performance','limits','security','functionality','logic','ux','report'];
-let es=null;
+let es=null, curRun=null;
+$('#btnStop').onclick=async()=>{
+  if(!curRun)return;
+  $('#btnStop').disabled=true;addLine('stop requested…','hit');
+  try{await j(`/api/run/${curRun}/stop`,{method:'POST'})}catch(e){addLine('stop failed: '+e.message,'hit')}
+};
 $('#btnRun').onclick=async()=>{
   const b=body();
   if(!b.prompt&&!b.dims){alert('Write a prompt or tick at least one dimension');return}
@@ -207,15 +213,18 @@ $('#btnRun').onclick=async()=>{
 };
 
 function liveView(rid){
+  curRun=rid;
   $('#livecard').style.display='block';$('#trace').innerHTML='';
+  $('#pbar').style.width='0';
   $('#steps').innerHTML=STEPS.map(s=>`<span class=step id=st-${s}>${s}</span>`).join('');
-  let n=0,total=0;
+  let n=0,total=0,doneSeen=false;
   if(es)es.close();
   es=new EventSource(`/api/run/${rid}/stream`);
   es.onmessage=ev=>{
     const d=JSON.parse(ev.data);
-    if(d.line==='__DONE__'){es.close();$('#btnRefresh').click();refreshRuns();
-      addLine(`— run ${d.status.toUpperCase()} —`,'ok');$('#pbar').style.width='100%';return}
+    if(d.line==='__DONE__'){doneSeen=true;es.close();$('#btnRefresh').click();refreshRuns();
+      addLine(`— run ${d.status.toUpperCase()} —`,d.status==='stopped'?'hit':'ok');
+      $('#pbar').style.width='100%';$('#btnStop').style.display='none';curRun=null;return}
     n++;
     addLine(`${d.ts}  ${d.line}`);
     for(const s of STEPS){if(d.line.includes('['+s) || d.line.includes(s+']'))mark(s,'on')}
@@ -227,6 +236,12 @@ function liveView(rid){
     const t=$('#trace');t.scrollTop=t.scrollHeight;
   };
   es.onerror=()=>{};
+  // Stop button only makes sense while the run is still active; decide via API
+  j(`/api/run/${rid}`).then(r=>{
+    if(!doneSeen && r.status!=='done' && r.status!=='error' && r.status!=='stopped')
+      $('#btnStop').style.display='inline-block';
+    else $('#btnStop').style.display='none';
+  }).catch(()=>{$('#btnStop').style.display='inline-block'});
 }
 function mark(s,cls){const e=$('#st-'+s);if(e)e.className='step '+cls}
 function addLine(txt,forceCls){
@@ -237,7 +252,21 @@ function addLine(txt,forceCls){
   el.innerHTML=(cls?`<span class=${cls}>`:'<span>')+esc(txt)+'</span>';
   $('#trace').appendChild(el);
 }
-$('#btnClear').onclick=()=>{if(es)es.close();$('#livecard').style.display='none'};
+$('#btnClear').onclick=()=>{if(es)es.close();
+  // closing the view only detaches the stream; a running task keeps running
+  // and its Stop button stays available in Recent runs.
+  if(curRun){const r=curRun;
+    j(`/api/run/${r}`).then(x=>{
+      if(['queued','running'].includes(x.status)){
+        $('#runs').insertAdjacentHTML('afterbegin',
+          `<div id="stopbar-${r}"><span class="pill running">running</span> <b>${r}</b>
+           <button class="stop" style="padding:2px 10px;font-size:11px;float:right"
+             onclick="j('/api/run/${r}/stop',{method:'POST'});this.disabled=true;this.textContent='stopping…'">⏹ Stop</button></div>`);
+      }
+    }).catch(()=>{});}
+  $('#btnStop').style.display='none';$('#livecard').style.display='none';curRun=null};
+async function stopFromList(r,btn){btn.disabled=true;btn.textContent='stopping…';
+  try{await j(`/api/run/${r}/stop`,{method:'POST'})}catch(e){btn.textContent='stop failed'}}
 
 /* ---------------- tabs / results ---------------- */
 const TABS=[['findings','Findings'],['performance','Performance'],['limits','Limits'],
@@ -253,39 +282,46 @@ async function refreshAll(){ // pull latest report for charts
     $('#s-plat').textContent=lastReport.total??'–';$('#s-alive').textContent=lastReport.alive??'–';
     $('#s-find').textContent=lastReport.findings??'–';$('#s-ch').textContent=lastReport.critical_high??'–';}}catch(e){}
 }
+function hasData(section,keys){ // true if the latest report contains suite data
+  const s=lastReport?.suite?.[section];
+  if(!s||typeof s!=='object')return false;
+  return keys?keys.some(k=>k in s):Object.keys(s).length>0;
+}
+function noDataMsg(name,dim){return `<span class=mut>No ${esc(name)} data in the latest report (${esc(dim)}).</span><br><span class=mut>Run a test with the <b>${esc(dim)}</b> dimension ticked (or ask the agent via prompt), then press ⟳ Refresh results.</span>`}
 $('#btnRefresh').onclick=async()=>{await refreshAll();loadTab(document.querySelector('.tab.sel').dataset.t)};
 
 async function loadTab(t){
   const el=$('#tabbody');el.innerHTML='<span class=mut>loading…</span>';
+  if(!lastReport)await refreshAll();   // always have latest report before rendering
   try{
     if(t==='findings'){const f=await j('/api/findings');
       el.innerHTML=f.length?`<table><tr><th>Platform</th><th>Category</th><th>Type</th><th>Status</th><th>Severity</th><th>Payload</th></tr>`+
         f.map(x=>`<tr><td>${esc(x.platform)}</td><td>${esc(x.category)}</td><td>${esc(x.finding_type)}</td>
         <td>${esc(x.status)}</td><td><span class="sev ${esc(x.severity)}">${esc(x.severity)}</span></td>
         <td class=mut title="${esc(x.endpoint)}">${esc((x.payload||'').slice(0,40))}</td></tr>`).join('')+'</table>'
-        :'<span class=mut>No findings yet.</span>';
+        :'<span class=mut>No findings yet — run a 🛡 Security test.</span>';
     }else if(t==='performance'){
       const p=(lastReport?.suite?.performance)||{};const ks=Object.keys(p);
-      if(!ks.length){el.innerHTML='<span class=mut>No performance data — run a test with ⚡ Performance.</span>';return}
+      if(!ks.length){el.innerHTML=noDataMsg('performance','⚡ Performance');return}
       const mx=Math.max(...ks.map(k=>p[k].p95_ms||0),1);
       el.innerHTML=`<table><tr><th>Platform</th><th>Avg ms</th><th>p95 latency</th><th>HTML size</th></tr>`+
         ks.map(k=>`<tr><td>${esc(k)}</td><td>${p[k].avg_ms}</td>
         <td><div style="display:flex;align-items:center;gap:8px"><div class=bar style="width:${Math.max(6,100*(p[k].p95_ms||0)/mx)}%"><i style="width:100%"></i></div>${p[k].p95_ms}ms</div></td>
         <td>${(p[k].avg_html_bytes/1024).toFixed(1)} KB</td></tr>`).join('')+'</table>';
     }else if(t==='limits'){
-      const l=lastReport?.suite?.limits;if(!l){el.innerHTML='<span class=mut>No limit data — run 🧱 Limits.</span>';return}
+      const l=lastReport?.suite?.limits;if(!l||!Object.keys(l).length){el.innerHTML=noDataMsg('limits','🧱 Limits');return}
       el.innerHTML=`<table><tr><th>Probe</th><th>HTTP</th><th>Time</th><th>Verdict</th></tr>`+
         Object.entries(l).filter(([k,v])=>v.status!==undefined).map(([k,v])=>
         `<tr><td>${esc(k)}</td><td>${v.status}</td><td>${v.ms}ms</td><td>${esc(v.verdict)}</td></tr>`).join('')+
         `</table><p class=mut>Burst result: ${esc(JSON.stringify(l.burst_12x_root||{}))}</p>`;
     }else if(t==='func'){
-      const f=lastReport?.suite?.functionality;if(!f){el.innerHTML='<span class=mut>No functionality data.</span>';return}
+      const f=lastReport?.suite?.functionality;if(!f||!Object.keys(f).length){el.innerHTML=noDataMsg('functionality','⚙ Functionality');return}
       el.innerHTML=`<table><tr><th>Platform</th><th>Status</th><th>SPA</th><th>Title</th><th>Favicon</th><th>Viewport</th><th>Problems</th></tr>`+
         Object.entries(f).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.http_status}</td>
         <td>${v.is_spa?'✓':'✗'}</td><td>${v.has_title?'✓':'✗'}</td><td>${v.has_favicon?'✓':'✗'}</td>
         <td>${v.has_meta_viewport?'✓':'✗'}</td><td class=mut>${esc((v.problems||[]).join(', ')||'none')}</td></tr>`).join('')+'</table>';
     }else if(t==='logic'){
-      const g=lastReport?.suite?.logic;if(!g){el.innerHTML='<span class=mut>No logic data (needs auth token).</span>';return}
+      const g=lastReport?.suite?.logic;if(!g||!Object.keys(g).length){el.innerHTML=noDataMsg('logic','🔀 Logic');return}
       el.innerHTML='<pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(g,null,2))+'</pre>';
     }else if(t==='ux'){
       const u=lastReport?.ux_reviews;if(!u||!u.length){el.innerHTML='<span class=mut>No UX reviews yet — run 👁 UX/UI to capture screenshots + comments.</span>';return}
@@ -314,11 +350,13 @@ function zoom(src){$('#dlgimg').src=src;$('#dlg').showModal()}
 $('#dlg').onclick=()=>$('#dlg').close();
 
 async function refreshRuns(){try{const rs=await j('/api/runs');
-  $('#runs').innerHTML=rs.length?rs.slice(0,8).map(r=>
-   `<div><span class="pill ${r.status}">${r.status}</span> <b>${r.id}</b>
+  $('#runs').innerHTML=rs.length?rs.slice(0,8).map(r=>{
+   const running=['queued','running'].includes(r.status);
+   return `<div><span class="pill ${r.status}">${r.status}</span> <b>${r.id}</b>
     ${esc((r.spec&&(r.spec.prompt||r.spec.dims&&r.spec.dims.join('+')))||'')} 
     ${r.summary?`· ${r.summary.findings} findings`:''}
-    <button class=sec style="padding:2px 8px;font-size:11px;float:right" onclick="liveView('${r.id}')">view</button></div>`).join('')
+    ${running?`<button class=stop style="padding:2px 8px;font-size:11px;float:right;margin-left:6px" onclick="stopFromList('${r.id}',this)">⏹</button>`:''}
+    <button class=sec style="padding:2px 8px;font-size:11px;float:right" onclick="liveView('${r.id}')">view</button></div>`}).join('')
    :'—';}catch(e){}}
 setInterval(refreshRuns,5000);refreshRuns();refreshAll();
 </script>

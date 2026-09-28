@@ -1,4 +1,6 @@
+# Compiled and cache files
 __pycache__/
 *.pyc
-.pytest_cache/
-data/
+
+# Database files
+*.db
