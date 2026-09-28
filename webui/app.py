@@ -3,7 +3,7 @@
 
 Start with exactly ONE terminal command:
 
-    python hermes/aba_fusion_platform_audit/webui/app.py
+    python webui/app.py
 
 then open http://127.0.0.1:8787 in a browser.  Everything else -- starting
 runs, watching them live, browsing results, screenshots and reports -- is
@@ -30,9 +30,9 @@ from datetime import datetime
 
 # --- make the ai_agent package importable regardless of cwd ---------------
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_PKG_ROOT = os.path.dirname(_HERE)                       # aba_fusion_platform_audit/
-_AI_AGENT = os.path.join(_PKG_ROOT, 'ai_agent')          # .../ai_agent
-for _p in (_AI_AGENT, _PKG_ROOT):
+_ROOT = os.path.dirname(_HERE)                           # repo root
+_AI_AGENT = os.path.join(_ROOT, 'ai_agent')              # .../ai_agent
+for _p in (_AI_AGENT, _ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 

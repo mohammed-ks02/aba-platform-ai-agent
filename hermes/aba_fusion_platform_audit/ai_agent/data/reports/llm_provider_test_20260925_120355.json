@@ -1,7 +1,0 @@
-{
-  "groq:openai/gpt-oss-120b": {
-    "provider": "groq",
-    "model": "openai/gpt-oss-120b",
-    "error": "all providers failed: groq: HTTP 403: {\"type\":\"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/\",\"title\":\"Erro"
-  }
-}

@@ -6,7 +6,7 @@ platforms (9 targets under `*.abafusion.ai`).
 ## Layout
 
 ```
-hermes/aba_fusion_platform_audit/
+
 ├── ai_agent/
 │   ├── agent.py            # main entry point (forwards to core.runner)
 │   ├── agent_fast.py       # deprecated wrapper -> `agent.py --quick`
@@ -19,18 +19,21 @@ hermes/aba_fusion_platform_audit/
 │   │   ├── memory.py       #   SQLite persistence (platforms/findings/patterns)
 │   │   ├── runner.py       #   unified pipeline: auth -> discover -> fuzz -> report
 │   │   └── token_manager.py#   re-export of top-level module
-│   ├── data/               # runtime artifacts (memory.db, reports/) — gitignored
+│   ├── llm/                # (inside core/) provider-agnostic LLM layer
+│   ├── data/               # runtime artifacts (memory.db, reports/, screenshots/) — gitignored
 │   └── KNOWLEDGE_*.md      # documentation of platforms, memory schema, payloads
-└── tests/                  # pytest suite (offline) + live platform tests
-```
+├── tests/                  # pytest suite (offline) + live platform tests
+├── tools/                  # llm_provider_test.py — live provider/model validation
+└── webui/                  # FastAPI web interface (app.py + static/index.html)
+                            #   run: python webui/app.py  -> http://127.0.0.1:8787
 
 ## Usage
 
 ```bash
-python hermes/aba_fusion_platform_audit/ai_agent/agent.py            # full run
-python hermes/aba_fusion_platform_audit/ai_agent/agent.py --quick    # reduced matrix
-python hermes/aba_fusion_platform_audit/ai_agent/agent.py --no-fuzz  # discovery only
-python hermes/aba_fusion_platform_audit/ai_agent/agent.py --fresh    # reset memory DB
+python ai_agent/agent.py            # full run
+python ai_agent/agent.py --quick    # reduced matrix
+python ai_agent/agent.py --no-fuzz  # discovery only
+python ai_agent/agent.py --fresh    # reset memory DB
 ```
 
 Data paths are absolute (resolved from the package root) and can be
@@ -44,12 +47,12 @@ playwright install chromium              # one-time browser download
 python -m pytest                       # offline unit + integration tests (mocked I/O)
 
 # Live platform tests — Playwright is the runner for these (NOT pytest):
-python hermes/aba_fusion_platform_audit/tests/test_platforms_playwright.py           # render-check all 9 in headless Chromium + JSON report
-python hermes/aba_fusion_platform_audit/tests/test_platforms_playwright.py --fuzz    # + authenticated DP API fuzzing via Playwright request context
-python hermes/aba_fusion_platform_audit/tests/test_platforms_playwright.py --headed  # watch the browser
+python tests/test_platforms_playwright.py           # render-check all 9 in headless Chromium + JSON report
+python tests/test_platforms_playwright.py --fuzz    # + authenticated DP API fuzzing via Playwright request context
+python tests/test_platforms_playwright.py --headed  # watch the browser
 
 # Legacy urllib-based live sweep (kept as a no-browser fallback):
-ABA_LIVE_TESTS=1 python -m pytest hermes/aba_fusion_platform_audit/tests/test_platforms_live.py -v
+ABA_LIVE_TESTS=1 python -m pytest tests/test_platforms_live.py -v
 ```
 
 ## Notes
