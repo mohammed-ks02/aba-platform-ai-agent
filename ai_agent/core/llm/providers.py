@@ -100,6 +100,19 @@ class AnthropicProvider(BaseProvider):
         except Exception as e:
             raise LLMError(f'anthropic: bad response: {str(data)[:200]}') from e
 
+    def list_models(self):
+        import urllib.request
+        url = f'{self.base_url}/models'
+        req = urllib.request.Request(url, headers=self._headers(),
+                                     method='GET')
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                data = json.loads(r.read().decode('utf-8', 'replace'))
+        except Exception as e:
+            raise LLMError(f'anthropic: models: {e}') from e
+        return sorted({m['id'] for m in data.get('data', [])
+                       if isinstance(m, dict) and m.get('id')})
+
 
 # --------------------------------------------------------------------------
 # Google Gemini (generateContent -- auth via query param)
@@ -132,6 +145,23 @@ class GeminiProvider(BaseProvider):
             return ''.join(p.get('text', '') for p in parts)
         except (KeyError, IndexError, TypeError) as e:
             raise LLMError(f'gemini: bad response: {str(data)[:200]}') from e
+
+    def list_models(self):
+        import urllib.request
+        url = f'{self.base_url}/models?key={self.api_key}'
+        req = urllib.request.Request(url, headers=self._headers(),
+                                     method='GET')
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                data = json.loads(r.read().decode('utf-8', 'replace'))
+        except Exception as e:
+            raise LLMError(f'gemini: models: {e}') from e
+        out = []
+        for m in data.get('models', []) or data.get('sdkModels', []):
+            name = m.get('name', '')
+            out.append(name[len('models/'):] if name.startswith('models/')
+                       else name)
+        return sorted(x for x in out if x)
 
 
 # --------------------------------------------------------------------------
@@ -219,3 +249,55 @@ class CustomProvider(OpenAICompatibleProvider):
             raise LLMError('custom provider needs ABA_LLM_BASE_URL')
         if not self.model:
             raise LLMError('custom provider needs ABA_LLM_MODEL')
+
+
+# --------------------------------------------------------------------------
+# Model discovery (used by the Web UI provider picker)
+# --------------------------------------------------------------------------
+# Curated fallbacks used when the live GET /models endpoint is unreachable
+# or returns nothing useful (e.g. Azure deployments are not listable).
+CURATED_MODELS = {
+    'groq': ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b',
+             'meta-llama/llama-4-scout-17b-16e-instruct',
+             'moonshotai/kimi-k2-instruct'],
+    'nvidia': ['deepseek-ai/deepseek-v4.1-flash', 'z-ai/glm-5.3-flash',
+               'moonshotai/kimi-k3', 'nvidia/nemotron-3-ultra-550b-a55b',
+               'meta/meta-llama-3.1-405b-instruct'],
+    'openai': ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'o3-mini'],
+    'anthropic': ['claude-sonnet-4-20250514', 'claude-3-5-haiku-latest'],
+    'gemini': ['gemini-2.0-flash', 'gemini-1.5-pro'],
+    'ollama': ['llama3.1', 'qwen2.5-coder', 'deepseek-r1'],
+    'custom': [],
+}
+
+
+def list_provider_models(name, base_url=None, api_key=None, timeout=15):
+    """Best-effort model catalogue for one provider.
+
+    Tries the provider's live ``GET /models`` endpoint first; on any error
+    falls back to a small curated list so the UI always has something to
+    show.  Returns {'provider', 'source': 'live'|'fallback'|'none',
+    'models': [...], 'error': str|None}.
+    """
+    cls = PROVIDERS.get(name)
+    if cls is None and name != 'custom':
+        return {'provider': name, 'source': 'none', 'models': [],
+                'error': f'unknown provider: {name}'}
+    try:
+        prov = (cls if name == 'custom' else cls)(base_url=base_url,
+                                                  api_key=api_key,
+                                                  timeout=timeout)
+        models = prov.list_models()
+        if models:
+            return {'provider': name, 'source': 'live', 'models': models,
+                    'error': None}
+        err = None
+    except Exception as e:
+        models, err = [], str(e)[:200]
+    fallback = CURATED_MODELS.get(name, [])
+    if fallback:
+        return {'provider': name, 'source': 'fallback', 'models': fallback,
+                'error': err}
+    dflt = getattr(cls, 'default_model_name', '') if cls else ''
+    return {'provider': name, 'source': 'none',
+            'models': [dflt] if dflt else [], 'error': err}

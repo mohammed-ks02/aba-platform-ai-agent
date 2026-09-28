@@ -102,3 +102,9 @@ ABA_LIVE_TESTS=1 python -m pytest tests/test_platforms_live.py -v
 - Runtime has zero third-party dependencies (Python stdlib only).
 - Only staging environments are targeted; keep credentials in env/config if
   you fork this — `token_manager.CREDS` currently holds a hardcoded test account.
+
+## Documentation map
+
+- [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md) — every file mapped to the day it was created and what changed later.
+- [`docs/days/day1.md`](docs/days/day1.md) · [`day2.md`](docs/days/day2.md) · [`day3.md`](docs/days/day3.md) — per-day work logs.
+- [`PROGRESS_DAY_BY_DAY.md`](PROGRESS_DAY_BY_DAY.md) — full narrative report.
