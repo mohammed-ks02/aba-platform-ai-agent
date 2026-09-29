@@ -1,4 +1,4 @@
-# Hermes — ABA Fusion Platform Audit
+# BA Fusion Platform Audit
 
 AI-driven multi-platform security testing agent for the ABA Fusion staging
 platforms (9 targets under `*.abafusion.ai`).
