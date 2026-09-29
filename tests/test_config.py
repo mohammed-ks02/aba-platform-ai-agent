@@ -15,8 +15,6 @@ import sys  # noqa: E402
 def test_project_layout():
     expected = [
         'ai_agent/agent.py',
-        'ai_agent/agent_fast.py',
-        'ai_agent/agent_ultra.py',
         'ai_agent/token_manager.py',
         'ai_agent/core/__init__.py',
         'ai_agent/core/config.py',
@@ -51,17 +49,32 @@ def test_core_modules_importable():
         importlib.import_module(mod)
 
 
+_SKIP_DIRS = {'__pycache__', '.pytest_cache', '.git', '.venv', 'venv', 'env',
+              'site-packages', 'node_modules', 'build', 'dist', '.mypy_cache',
+              '.ruff_cache', '.eggs'}
+
+
 def test_all_python_files_parse():
-    for root, dirs, files in os.walk(os.path.dirname(_AI_AGENT)):
-        dirs[:] = [d for d in dirs if d not in ('__pycache__', '.pytest_cache')]
-        for fn in files:
-            if fn.endswith('.py'):
-                path = os.path.join(root, fn)
-                with open(path) as f:
-                    try:
-                        ast.parse(f.read(), filename=path)
-                    except SyntaxError as e:
-                        pytest.fail(f'syntax error in {path}: {e}')
+    # Only walk the project's own source trees, never a virtualenv or any
+    # installed site-packages (they contain files this test should not judge,
+    # and non-UTF-8/py2 files there would break it). Always decode UTF-8 so
+    # the test behaves identically on Windows (cp1252) and POSIX.
+    roots = [_AI_AGENT, _HERE,
+             os.path.join(_PKG_ROOT, 'tools'),
+             os.path.join(_PKG_ROOT, 'webui')]
+    for base in roots:
+        if not os.path.isdir(base):
+            continue
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d not in _SKIP_DIRS]
+            for fn in files:
+                if fn.endswith('.py'):
+                    path = os.path.join(root, fn)
+                    with open(path, encoding='utf-8') as f:
+                        try:
+                            ast.parse(f.read(), filename=path)
+                        except SyntaxError as e:
+                            pytest.fail(f'syntax error in {path}: {e}')
 
 
 class TestConfig:

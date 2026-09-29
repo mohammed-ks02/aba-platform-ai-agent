@@ -1,6 +1,31 @@
-# Compiled and cache files
+# Python cache and compiled files
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Database files
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets — NEVER commit
+.env
+.env.local
+.env.*
+!.example
+aba_token_cache.json
+*token*.txt
+*creds*.txt
+
+# Runtime artifacts (memory DB, reports, screenshots)
+ai_agent/data/
+data/
 *.db
+*.sqlite
+
+# OS / editor
+.DS_Store
+Thumbs.db

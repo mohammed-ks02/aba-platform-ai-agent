@@ -31,11 +31,14 @@ PLATFORMS = {
     'stg-analytics': {'name': 'Analytics',
                       'base': 'https://stg-analytics.abafusion.ai',
                       'type': 'analytics'},
-    'stg-pulse': {'name': 'Pulse', 'base': 'https://stg-pulse.abafusion.ai',
+    # These three SPAs are served under a sub-path, not the bare host -- probe
+    # the app, not the redirect shell (see the original platform spec).
+    'stg-pulse': {'name': 'Pulse',
+                  'base': 'https://stg-pulse.abafusion.ai/project',
                   'type': 'pulse'},
     'stg-orbit': {'name': 'Orbit', 'base': 'https://stg-orbit.abafusion.ai',
                   'type': 'orbit'},
-    'stg-mate': {'name': 'Mate', 'base': 'https://stg-mate.abafusion.ai',
+    'stg-mate': {'name': 'Mate', 'base': 'https://stg-mate.abafusion.ai/mate',
                  'type': 'mate'},
     'stg-perf': {'name': 'Performance', 'base': 'https://stg-perf.abafusion.ai',
                  'type': 'perf'},
@@ -43,7 +46,7 @@ PLATFORMS = {
                     'base': 'https://stg-agentic.abafusion.ai',
                     'type': 'agentic'},
     'stg-orch': {'name': 'Orchestration',
-                 'base': 'https://stg-orch.abafusion.ai',
+                 'base': 'https://stg-orch.abafusion.ai/automation',
                  'type': 'orchestration'},
     # NOTE: the forge root URL is unreachable; the app lives under /fusionforge/
     'stg-forge': {'name': 'Fusion Forge',
@@ -59,11 +62,11 @@ FUZZ = {
     'nosql': ['{"$ne": null}', '{"$gt": ""}'],
     'ssrf': ['http://127.0.0.1:8080/admin', 'file:///etc/passwd'],
     'redirect': ['//evil.com', 'http://evil.com'],
-    'ssti': ['{{7*7}}', '{{config}}'],
+    'ssti': ['{{1327*1331}}', '${1327*1331}'],
     'xxe': ["<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>"],
-    'empty': ['', None, 'null'],
-    'boundary': ['', '0', '1'],
 }
+# Note: 'empty'/'boundary' categories were removed -- analyze_response has no
+# signal for them, so they only added HTTP churn with no possible finding.
 
 # Connector types used when fuzzing the Data Platform manager API
 CONNECTOR_TYPES = ['bigquery', 'mongodb', 'slack']

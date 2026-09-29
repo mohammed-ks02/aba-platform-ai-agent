@@ -29,6 +29,8 @@ _PLAT_WORDS = {
     'dp': 'stg-dp', 'data platform': 'stg-dp', 'connector': 'stg-dp',
     'analytics': 'stg-analytics', 'pulse': 'stg-pulse', 'orbit': 'stg-orbit',
     'mate': 'stg-mate', 'perf': 'stg-perf', 'performance app': 'stg-perf',
+    'performance platform': 'stg-perf', 'performance monitoring': 'stg-perf',
+    'perf platform': 'stg-perf',
     'agentic': 'stg-agentic', 'agent ai': 'stg-agentic',
     'orch': 'stg-orch', 'orchestration': 'stg-orch', 'automation': 'stg-orch',
     'forge': 'stg-forge', 'fusion forge': 'stg-forge',
@@ -51,15 +53,22 @@ _DIM_HINTS = [
 
 
 def keyword_plan(prompt):
-    """Deterministic fallback planner from keywords."""
+    """Deterministic fallback planner from keywords.
+
+    Platform words are matched on WORD BOUNDARIES so 'perf' no longer fires
+    inside 'performance', 'mate' inside 'automate/estimate', 'dp' inside a
+    larger token, etc. Dimension hints are matched on a leading boundary so
+    prefixes like 'consisten'/'idempoten'/'throttl' still catch their words.
+    """
     p = (prompt or '').lower()
     dims = []
     for hints, dim in _DIM_HINTS:
-        if any(h in p for h in hints) and dim not in dims:
+        if any(re.search(r'\b' + re.escape(h), p) for h in hints) \
+                and dim not in dims:
             dims.append(dim)
     plats = []
     for word, key in _PLAT_WORDS.items():
-        if word in p and key not in plats:
+        if re.search(r'\b' + re.escape(word) + r'\b', p) and key not in plats:
             plats.append(key)
     focus = re.findall(r'"([^"]+)"|\'([^\']+)\'', p)
     focus = [a or b for a, b in focus]
@@ -114,14 +123,3 @@ def interpret_prompt(prompt, llm=None):
         plan['notes'] += f' (LLM planning unavailable: {str(e)[:60]})'
         plan['source'] = 'keywords-fallback'
         return plan
-
-
-def plan_to_argv(plan):
-    """Map a plan onto runner CLI flags (used by the web UI launcher)."""
-    argv = []
-    dims = plan.get('dimensions', [])
-    if 'security' not in dims:
-        argv.append('--no-fuzz')
-    if len(plan.get('platforms', [])) < len(PLATFORMS):
-        pass  # --platforms handled natively by runner
-    return argv

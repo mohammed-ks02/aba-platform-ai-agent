@@ -87,12 +87,14 @@ class Memory:
                 'finding_type, severity FROM findings '
                 'ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
 
-    def finding_by_id(self, fid):
+    def findings_detailed(self, limit=300):
+        """Findings including the evidence (details) and recommendation, for
+        the report + the web UI's expandable rows."""
         with sqlite3.connect(self.db) as c:
             return c.execute(
                 'SELECT platform, endpoint, category, payload, status, '
-                'finding_type, severity, details, recommendation, ts '
-                'FROM findings WHERE id=?', (fid,)).fetchone()
+                'finding_type, severity, details, recommendation '
+                'FROM findings ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
 
     def patterns(self):
         with sqlite3.connect(self.db) as c:

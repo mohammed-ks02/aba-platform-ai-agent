@@ -20,8 +20,13 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setitem(cfg_mod.CONFIG, 'reports_dir',
                         str(tmp_path / 'reports'))
     monkeypatch.setattr(runner, 'get_token', lambda: 'fake-token')
-    # make sure no ambient LLM keys leak into offline tests
-    for var in ('ABA_LLM_PROVIDER', 'ABA_LLM_API_KEY', 'OPENAI_API_KEY',
+    monkeypatch.setenv('ABA_FUZZ_THROTTLE', '0')  # no politeness sleeps in tests
+    # make sure no ambient LLM keys leak into offline tests.  Also pin
+    # ABA_LLM_PROVIDER to 'auto' explicitly: conftest.py scrubs it from the
+    # process env, but a developer .env file in the repo root gets re-loaded
+    # by core.config on import and could otherwise enable real network calls.
+    monkeypatch.setenv('ABA_LLM_PROVIDER', 'auto')
+    for var in ('ABA_LLM_API_KEY', 'OPENAI_API_KEY',
                 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY',
                 'GROQ_API_KEY', 'DEEPSEEK_API_KEY', 'MISTRAL_API_KEY',
                 'OPENROUTER_API_KEY', 'XAI_API_KEY', 'TOGETHER_API_KEY',
@@ -72,8 +77,10 @@ def test_report_written(isolated):
 def test_quick_mode_reduces_matrix(isolated):
     _, calls = isolated
     runner.main(['--quick'])
-    types = {c[2]['type'] for c in calls}
-    assert len(types) == 1  # single connector type in quick mode
+    # POST injection uses a single connector type (GET points carry no body).
+    types = {c[2]['type'] for c in calls
+             if isinstance(c[2], dict) and 'type' in c[2]}
+    assert len(types) == 1
 
 
 def test_no_fuzz_skips_requests(isolated):
@@ -94,7 +101,8 @@ def test_no_token_skips_fuzz_gracefully(monkeypatch, isolated):
 def test_fuzz_sends_auth_and_payload(isolated):
     _, calls = isolated
     runner.main(['--quick'])
-    method, url, body, token = calls[0]
+    post = [c for c in calls if c[0] == 'POST' and isinstance(c[2], dict)]
+    method, url, body, token = post[0]
     assert method == 'POST'
     assert url.endswith('/connectors')
     assert token == 'fake-token'

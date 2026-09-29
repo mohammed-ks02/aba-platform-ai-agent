@@ -25,13 +25,30 @@ def _all_registry():
 
 
 def available_providers():
-    """Registry names usable right now (key present / no key required)."""
+    """Registry names usable right now (key present / no key required).
+
+    Keyless local/self-hosted providers (ollama, lmstudio, vllm, llama.cpp,
+    litellm, custom) are only considered available when a base URL is
+    explicitly configured.  Otherwise they would join the auto-detected
+    fallback chain and silently stall every offline/deterministic run on
+    connection timeouts to localhost.
+    """
     reg = _all_registry()
     out = {}
     for name, cls in reg.items():
         try:
-            if cls.available():
-                out[name] = cls
+            if not cls.available():
+                continue
+            if (getattr(cls, 'requires_key', True) is False
+                    and name != 'custom'):
+                # keyless local/self-hosted server -- only join the chain
+                # when its own base-url env var is set (e.g. a real ollama
+                # box configured via ABA_LLM_BASE_URL), never because some
+                # unrelated provider's endpoint happens to be in the env
+                if not any(os.environ.get(n) for n in
+                           getattr(cls, 'base_url_env', ())):
+                    continue
+            out[name] = cls
         except Exception:
             continue
     return out

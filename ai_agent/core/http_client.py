@@ -29,16 +29,29 @@ def check_abort():
         raise Aborted('run cancelled by user')
 
 
-def req(method, url, body=None, token='', timeout=None):
+def _lower_headers(hdrs):
+    """Response headers as a lowercase-keyed dict (last value wins)."""
+    try:
+        return {k.lower(): v for k, v in hdrs.items()}
+    except Exception:
+        return {}
+
+
+def req(method, url, body=None, token='', timeout=None, headers=None):
     """Perform an HTTP request; never raises (except on user abort).
 
-    Returns ``{'status': int, 'body': str}`` where status 0 means a
-    connection-level failure (DNS, timeout, TLS, refused...).
+    ``headers`` optionally supplies extra request headers (e.g. an oversized
+    header used by the limits probe). Returns
+    ``{'status': int, 'headers': dict, 'body': str}`` where status 0 means a
+    connection-level failure (DNS, timeout, TLS, refused...). ``headers`` are
+    the RESPONSE headers, lowercase-keyed (empty on a connection failure).
     """
     check_abort()
     h = {'User-Agent': 'AIAgent/1.0'}
     if token:
         h['Authorization'] = f'Bearer {token}'
+    if headers:
+        h.update(headers)
     if isinstance(body, dict):
         body = json.dumps(body).encode()
     elif isinstance(body, str):
@@ -47,18 +60,21 @@ def req(method, url, body=None, token='', timeout=None):
     try:
         r = urllib.request.Request(url, data=body, headers=h, method=method)
         with urllib.request.urlopen(r, timeout=eff_timeout) as resp:
-            socket.setdefaulttimeout(eff_timeout)  # cap slow body reads too
             return {'status': resp.status,
+                    'headers': _lower_headers(resp.headers),
                     'body': resp.read().decode('utf-8', errors='replace')}
     except urllib.error.HTTPError as e:
         return {'status': e.code,
+                'headers': _lower_headers(e.headers) if e.headers else {},
                 'body': e.read().decode('utf-8', errors='replace')}
     except socket.timeout:
-        return {'status': 0, 'body': f'timed out after {eff_timeout}s'}
+        return {'status': 0, 'headers': {},
+                'body': f'timed out after {eff_timeout}s'}
     except TimeoutError:
-        return {'status': 0, 'body': f'timed out after {eff_timeout}s'}
+        return {'status': 0, 'headers': {},
+                'body': f'timed out after {eff_timeout}s'}
     except Exception as e:
-        return {'status': 0, 'body': str(e)[:150]}
+        return {'status': 0, 'headers': {}, 'body': str(e)[:150]}
 
 
 def discover(base, timeout=5):
@@ -67,7 +83,6 @@ def discover(base, timeout=5):
     try:
         r = urllib.request.Request(base, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(r, timeout=timeout) as resp:
-            socket.setdefaulttimeout(timeout)
             html = resp.read().decode('utf-8', errors='replace')
             title = re.search(r'<title[^>]*>([^<]+)</title>', html, re.I)
             return {'alive': True, 'code': resp.status,

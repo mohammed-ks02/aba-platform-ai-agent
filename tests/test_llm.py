@@ -345,6 +345,10 @@ def test_groq_default_model_is_qwen38():
     assert PROVIDERS['groq'].default_model_name == 'qwen/qwen3.8-27b'
 
 
-def test_nvidia_default_model_is_glm53_and_streams():
-    assert PROVIDERS['nvidia'].default_model_name == 'z-ai/glm-5.3-flash'
+def test_nvidia_default_model_works_and_streams():
+    # Default was changed from z-ai/glm-5.3-flash (times out on every call) to
+    # a model verified to respond on the free NIM endpoint. It must still use
+    # SSE streaming, which NIM requires for reasonable latency.
+    assert PROVIDERS['nvidia'].default_model_name == \
+        'nvidia/nemotron-3-super-120b-a12b'
     assert PROVIDERS['nvidia'].stream is True

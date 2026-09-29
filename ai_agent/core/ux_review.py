@@ -125,27 +125,225 @@ def _heuristic_comments(facts):
             'source': 'heuristics'}
 
 
-def review_platform(key, llm=None, headless=True, slow_mo=0):
-    """Open one platform in Chromium, screenshot, collect facts+comments."""
+def _banner(page, step, total, text, sub=''):
+    """Show a fixed on-page banner naming the current test step (headed runs)."""
+    try:
+        page.evaluate(
+            """([step, total, text, sub]) => {
+                let el = document.getElementById('__aba_banner');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = '__aba_banner';
+                    el.style.cssText = 'position:fixed;top:0;left:0;right:0;'
+                      + 'z-index:2147483647;background:#0e1420;color:#dbe3f0;'
+                      + 'font:600 15px system-ui,Segoe UI,sans-serif;'
+                      + 'padding:10px 16px;border-bottom:3px solid #4f8cff;'
+                      + 'box-shadow:0 2px 14px rgba(0,0,0,.55)';
+                    document.documentElement.appendChild(el);
+                }
+                el.innerHTML = '<span style="color:#4f8cff">ABA test agent</span>'
+                  + ' · step ' + step + '/' + total + ' · ' + text
+                  + (sub ? '<div style="font-weight:400;font-size:12px;'
+                    + 'color:#8593ab;margin-top:2px">' + sub + '</div>' : '');
+            }""", [step, total, text, sub])
+    except Exception:
+        pass
+
+
+def _highlight(page, selector, color):
+    """Outline elements matching selector so a watcher sees what is inspected."""
+    try:
+        return page.evaluate(
+            """([sel, color]) => {
+                const els = Array.from(document.querySelectorAll(sel));
+                els.forEach(e => { e.style.outline = '3px solid ' + color;
+                                   e.style.outlineOffset = '1px'; });
+                return els.length;
+            }""", [selector, color])
+    except Exception:
+        return 0
+
+
+def _clean_overlays(page):
+    """Remove the banner + all injected outlines before the report screenshot."""
+    try:
+        page.evaluate("""() => {
+            const b = document.getElementById('__aba_banner'); if (b) b.remove();
+            document.querySelectorAll('*').forEach(e => {
+                if (e.style && e.style.outline) e.style.outline = ''; });
+        }""")
+    except Exception:
+        pass
+
+
+def _login(page, trace):
+    """Authenticate through the central SSO (stg-login.abafusion.ai) using the
+    agent's OWN test account from the environment (ABA_USERNAME/ABA_PASSWORD) --
+    the same account and credentials the API TokenManager already uses. Lands
+    the browser INSIDE the authenticated app. Returns True on success."""
+    user = os.environ.get('ABA_USERNAME', '')
+    pw = os.environ.get('ABA_PASSWORD', '')
+    if not (user and pw):
+        trace('[auth] ABA_USERNAME/ABA_PASSWORD not set - staying anonymous')
+        return False
+    try:
+        page.wait_for_selector('#username, input[name="username"]',
+                               timeout=15000)
+        page.fill('#username', user)
+        page.fill('#password', pw)
+        try:
+            page.click('button:has-text("Sign In")', timeout=5000)
+        except Exception:
+            page.click('button[type="submit"]')
+        # SSO bounces through stg-login and redirects back to the platform;
+        # wait until the URL actually leaves the login host before judging.
+        try:
+            page.wait_for_url(lambda u: 'stg-login' not in u, timeout=25000)
+        except Exception:
+            page.wait_for_load_state('networkidle', timeout=12000)
+        page.wait_for_timeout(1500)
+        ok = 'stg-login' not in page.url and '/login' not in page.url
+        trace(f'[auth] SSO login {"OK" if ok else "did not complete"} '
+              f'-> {page.url[:70]}')
+        return ok
+    except Exception as e:
+        trace(f'[auth] login error: {str(e)[:130]}')
+        return False
+
+
+def _headed_walkthrough(page, key, trace, authenticated=False):
+    """Visibly narrate the checks. When not authenticated it stays on the
+    public landing page; when authenticated it walks the logged-in app."""
+    total = 5
+
+    def hold(ms):
+        try:
+            page.wait_for_timeout(ms)
+        except Exception:
+            pass
+
+    if authenticated:
+        _banner(page, 1, total, 'Inside the authenticated app',
+                'Logged in via the agent test account — testing what is inside')
+        trace(f'[ux:show] {key}: authenticated app loaded')
+    else:
+        _banner(page, 1, total, 'Loaded public page',
+                'No login — inspecting the public/landing page only')
+        trace(f'[ux:show] {key}: public page loaded (no login)')
+    hold(1800)
+
+    _banner(page, 2, total, 'Structure: navigation & headings')
+    _highlight(page, 'nav, [role=navigation], header', '#4fd1a5')
+    _highlight(page, 'h1, h2', '#4f8cff')
+    hold(1800); _clean_overlays(page)
+
+    _banner(page, 3, total, 'Forms & input labels (accessibility)')
+    n_f = _highlight(page, 'form', '#ff6b6b')
+    n_in = _highlight(page, 'input, textarea, select', '#ffb454')
+    trace(f'[ux:show] {key}: {n_f} form(s), {n_in} field(s) checked for labels')
+    hold(1900); _clean_overlays(page)
+
+    _banner(page, 4, total, 'Interactive controls: links & buttons')
+    n_b = _highlight(page, 'button, [role=button]', '#7cc4ff')
+    n_l = _highlight(page, 'a[href]', '#b18cff')
+    trace(f'[ux:show] {key}: {n_b} button(s), {n_l} link(s) outlined')
+    hold(1700); _clean_overlays(page)
+
+    _banner(page, 5, total, 'Images alt-text + scrolling through the page')
+    n_alt = _highlight(page, 'img:not([alt]), img[alt=""]', '#ff4d6d')
+    trace(f'[ux:show] {key}: {n_alt} image(s) missing alt-text; scrolling page')
+    try:
+        for frac in (0.3, 0.6, 1.0):
+            page.evaluate("f => window.scrollTo({top: document.body."
+                          "scrollHeight*f, behavior:'smooth'})", frac)
+            hold(750)
+        page.evaluate("() => window.scrollTo({top:0, behavior:'smooth'})")
+    except Exception:
+        pass
+    hold(1200)
+
+
+def review_platform(key, llm=None, headless=True, slow_mo=0, trace_cb=None,
+                    authenticate=False):
+    """Open one platform in Chromium, screenshot, collect facts+comments.
+
+    ``authenticate=True`` logs in through the SSO with the agent's test account
+    so the checks run INSIDE the app; otherwise it stays on the public page and
+    never logs in."""
     from playwright.sync_api import sync_playwright
     info = PLATFORMS[key]
     shot = os.path.join(_screenshot_dir(), f'{key}_{datetime.now():%H%M%S}.png')
     result = {'platform': key, 'name': info['name'], 'url': info['base'],
               'screenshot': os.path.basename(shot)}
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=headless, slow_mo=slow_mo)
-        ctx = browser.new_context(ignore_https_errors=True)
+        # When headed (visible), open a big maximized window and dwell longer
+        # so a human can actually watch it; headless stays lean and fast.
+        launch_kw = {'headless': headless, 'slow_mo': slow_mo}
+        if not headless:
+            launch_kw['args'] = ['--start-maximized']
+        browser = pw.chromium.launch(**launch_kw)
+        ctx_kw = {'ignore_https_errors': True}
+        if not headless:
+            ctx_kw['no_viewport'] = True   # let the maximized window drive size
+        ctx = browser.new_context(**ctx_kw)
         page = ctx.new_page()
         errors = []
         page.on('pageerror', lambda e: errors.append(str(e)[:120]))
+        trace = trace_cb or (lambda m: None)
         try:
             resp = page.goto(info['base'], wait_until='domcontentloaded',
                              timeout=30000)
-            page.wait_for_timeout(2500)  # let the SPA hydrate
+            page.wait_for_timeout(2000)
+            authed = False
+            if authenticate:
+                authed = _login(page, trace)
+                page.wait_for_timeout(2500)  # let the app boot post-redirect
+                result['authenticated'] = authed
+            # (#7) hydration wait instead of a blind sleep: wait for the
+            # network to go idle and for real content to render, so we never
+            # rate an un-hydrated / white-screen shell as if it worked.
+            try:
+                page.wait_for_load_state('networkidle', timeout=8000)
+            except Exception:
+                pass
+            try:
+                page.wait_for_function(
+                    "() => (document.body && document.body.innerText || '')"
+                    ".trim().length > 60", timeout=6000)
+                result['rendered'] = True
+            except Exception:
+                result['rendered'] = False
+                trace(f'[ux] {key}: WARNING little/no rendered content '
+                      '(possible blank/white screen) - not just a shell')
+            if not headless:
+                page.wait_for_timeout(1200)            # settle for watching
+                _headed_walkthrough(page, key, trace, authenticated=authed)
+                _clean_overlays(page)                  # clean report screenshot
             result['http_status'] = resp.status if resp else None
             result['final_url'] = page.url
             facts = _dom_facts(page)
             facts['console_errors'] = errors[:5]
+            facts['rendered'] = result.get('rendered')
+            # (#10) light scripted interaction for interactive / AI products:
+            # type into the primary input, submit, and note whether a response
+            # region appears. Best-effort with test input; never fails review.
+            if info.get('type') == 'agentic' and authed:
+                try:
+                    box = page.query_selector(
+                        'textarea, input[type="text"], [contenteditable="true"]')
+                    if box:
+                        before = len(page.inner_text('body'))
+                        box.click()
+                        page.keyboard.type('test')
+                        page.keyboard.press('Enter')
+                        page.wait_for_timeout(3000)
+                        after = len(page.inner_text('body'))
+                        facts['interaction'] = {'sent': True,
+                                                'responded': after > before + 20}
+                        trace(f'[ux] {key}: scripted interaction sent -> '
+                              f'responded={facts["interaction"]["responded"]}')
+                except Exception as e:
+                    trace(f'[ux] {key}: interaction skipped ({str(e)[:60]})')
             result['facts'] = facts
             try:
                 page.screenshot(path=shot, full_page=True)
@@ -164,14 +362,17 @@ def review_platform(key, llm=None, headless=True, slow_mo=0):
     return result
 
 
-def review_all(llm=None, keys=None, headless=True, slow_mo=0, trace_cb=None):
+def review_all(llm=None, keys=None, headless=True, slow_mo=0, trace_cb=None,
+               authenticate=False):
     from .http_client import check_abort
     trace = trace_cb or (lambda m: None)
     out = []
     for key in (keys or PLATFORMS):
         check_abort()
-        trace(f'[ux] reviewing {key} in Chromium ...')
-        r = review_platform(key, llm=llm, headless=headless, slow_mo=slow_mo)
+        trace(f'[ux] reviewing {key} in Chromium '
+              f'({"authenticated" if authenticate else "public"}) ...')
+        r = review_platform(key, llm=llm, headless=headless, slow_mo=slow_mo,
+                            trace_cb=trace, authenticate=authenticate)
         rv = r.get('ux_review', {})
         trace(f"[ux] {key}: rating {rv.get('overall_rating_1to5')}/5 "
               f"({rv.get('source', 'llm')}) "

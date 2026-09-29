@@ -16,70 +16,76 @@ background:linear-gradient(90deg,#141b2b,#1a2338);border-bottom:1px solid var(--
 header h1{font-size:17px;margin:0;font-weight:700}
 header .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
 main{max-width:1280px;margin:0 auto;padding:18px}
-.grid{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:16px}
-@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--bord);border-radius:12px;
 padding:16px;margin-bottom:16px}
 .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;
 color:var(--mut);margin:0 0 12px}
-textarea,input[type=text],select{width:100%;background:var(--panel2);
+textarea,input[type=text],input[type=number],select{width:100%;background:var(--panel2);
 border:1px solid var(--bord);border-radius:8px;color:var(--tx);padding:9px 11px;
 font:inherit;outline:none}
 textarea:focus,input:focus,select:focus{border-color:var(--acc)}
-textarea{min-height:84px;resize:vertical}
+textarea{min-height:70px;resize:vertical}
 label.chk{display:inline-flex;align-items:center;gap:6px;margin:3px 10px 3px 0;
 cursor:pointer;color:var(--tx);font-size:13px}
 label.chk input{accent-color:var(--acc)}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
 button{background:var(--acc);color:#fff;border:0;border-radius:8px;
 padding:9px 18px;font:600 14px inherit;cursor:pointer}
 button.sec{background:var(--panel2);border:1px solid var(--bord);color:var(--tx);font-weight:500}
 button.stop{background:#c0392b;color:#fff;font-weight:600}
 button:disabled{opacity:.45;cursor:not-allowed}
-.plan{background:#12203a;border:1px solid #2b4a7a;border-radius:8px;
-padding:10px 12px;margin-top:10px;font-size:13px;display:none}
-.plan b{color:var(--acc)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{padding:4px 10px;border-radius:16px;border:1px solid var(--bord);
+background:var(--panel2);color:var(--mut);cursor:pointer;font-size:12px;user-select:none}
+.chip.on{border-color:var(--acc);color:var(--acc);background:#12203a}
+.mini{width:70px!important;padding:5px 8px!important;font-size:12px}
 #livecard{display:none}
-.progress{height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0 12px}
+.progress{height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0 8px}
 .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--ok));
 transition:width .5s}
+.livemeta{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-bottom:8px}
+.livemeta b{color:var(--tx)}
 .steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .step{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--panel2);
 border:1px solid var(--bord);color:var(--mut)}
 .step.on{border-color:var(--acc);color:var(--acc)}
 .step.fin{border-color:var(--ok);color:var(--ok)}
 #trace{background:#0a0f18;border:1px solid var(--bord);border-radius:8px;
-font:12px/1.6 var(--mono);padding:10px;height:280px;overflow-y:auto;white-space:pre-wrap}
+font:12px/1.6 var(--mono);padding:10px;height:260px;overflow-y:auto;white-space:pre-wrap}
 #trace .t{color:#4a5a78}
-#trace .hit{color:var(--warn)}
-#trace .err{color:var(--bad)}
-#trace .ok{color:var(--ok)}
-.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+#trace .hit{color:var(--warn)}#trace .err{color:var(--bad)}#trace .ok{color:var(--ok)}
+#trace .auth{color:#7cc4ff}#trace .cln{color:#4fd1a5}#trace .found{color:var(--crit)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
 .stat{background:var(--panel2);border:1px solid var(--bord);border-radius:10px;padding:12px;text-align:center}
 .stat .n{font-size:24px;font-weight:800}
-.stat .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.stat .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--bord)}
 .tab{padding:8px 14px;border:0;background:none;color:var(--mut);cursor:pointer;
 font:600 13px inherit;border-bottom:2px solid transparent}
 .tab.sel{color:var(--acc);border-bottom-color:var(--acc)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filters select{width:auto;padding:5px 8px;font-size:12px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;color:var(--mut);font-weight:600;padding:7px 9px;
 border-bottom:1px solid var(--bord);font-size:11px;text-transform:uppercase}
 td{padding:7px 9px;border-bottom:1px solid #1c2438;vertical-align:top}
 tr:hover td{background:#1a2233}
+tr.frow{cursor:pointer}
+.ev{background:#0a0f18;border:1px solid var(--bord);border-radius:6px;padding:9px 11px;
+margin:2px 0;font:12px/1.5 var(--mono);white-space:pre-wrap;color:var(--mut)}
+.ev b{color:var(--tx)}
 .sev{padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase}
 .critical{background:#4d1226;color:var(--crit)}.high{background:#4d2112;color:var(--bad)}
 .medium{background:#42330f;color:var(--warn)}.low{background:#12324d;color:#7cc4ff}
 .info{background:#1d2837;color:var(--mut)}
-.bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;min-width:120px}
+.bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;min-width:110px}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#3f6fd8,#4fd1a5)}
-.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-.shot{background:var(--panel2);border:1px solid var(--bord);border-radius:10px;overflow:hidden}
-.shot img{width:100%;display:block;cursor:zoom-in}
-.shot .cap{padding:8px 10px;font-size:12px;color:var(--mut)}
 .uxitem{border:1px solid var(--bord);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--panel2)}
 .uxitem img{max-width:100%;border-radius:6px;margin:8px 0;cursor:zoom-in}
 .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#12324d;color:#7cc4ff}
+.badge.auth{background:#123a2a;color:#4fd1a5}.badge.anon{background:#3a2a12;color:var(--warn)}
 .mut{color:var(--mut);font-size:12px}
 dialog{background:var(--panel);color:var(--tx);border:1px solid var(--bord);
 border-radius:10px;max-width:92vw;max-height:92vh;padding:8px}
@@ -89,34 +95,42 @@ dialog img{max-width:100%;max-height:85vh;display:block}
 .pill{padding:1px 8px;border-radius:10px;font-size:11px;background:var(--panel2);border:1px solid var(--bord)}
 .pill.done{color:var(--ok);border-color:var(--ok)}.pill.running{color:var(--acc);border-color:var(--acc)}
 .pill.error{color:var(--bad);border-color:var(--bad)}
+iframe.rv{width:100%;height:82vh;border:1px solid var(--bord);border-radius:8px;background:#fff}
 </style>
 </head>
 <body>
-<header><span class="dot"></span><h1>ABA Fusion — AI Multi-Platform Agent</h1>
-<span class="mut" id="mode">deterministic mode (no LLM configured)</span></header>
+<header><span class="dot"></span><h1>ABA Fusion — AI Multi-Platform Agent</h1></header>
 <main>
 <div class="grid">
 <!-- LEFT: control column -->
 <div>
   <div class="card">
     <h2>Tell the agent what to test</h2>
-    <textarea id="prompt" placeholder='e.g. "check how fast analytics and pulse load, review the forge login page UX, then fuzz the data platform API for injections and test rate limits"'
-      ></textarea>
+    <textarea id="prompt" placeholder='e.g. "log in and test the data platform: fuzz the connectors API for injections, check rate limits, and review the dashboard UX"'></textarea>
     <div class="row">
-      <select id="provider" style="flex:1"><option value="">LLM: auto-detect</option></select>
-      <input type="text" id="model" placeholder="model override (optional)" style="flex:1">
+      <select id="provider" style="flex:1"><option value="">LLM: auto</option></select>
+      <select id="model" style="flex:1.3" disabled><option value="">model: default</option></select>
+      <button class="sec" id="btnModels" title="Reload the model list">&#x21bb;</button>
     </div>
-    <div style="margin-top:10px">
-      <span class="mut">Or pick dimensions explicitly:</span><br>
-      <span id="dimboxes"></span>
+    <div class="mut" id="modelhint" style="margin-top:6px"></div>
+
+    <div style="margin-top:12px"><span class="mut">Platforms to test:</span>
+      <div class="chips" id="platchips"><span class="mut">loading…</span></div></div>
+
+    <div style="margin-top:6px"><span class="mut">Dimensions (or use the prompt):</span><br>
+      <span id="dimboxes"></span></div>
+
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="quick" checked> quick mode</label>
+      <label class="chk" title="Log in via SSO with the agent test account so UX runs test INSIDE the app"><input type="checkbox" id="auth" checked> 🔓 login &amp; test inside</label>
+      <label class="chk" title="Opens a real Chromium window during UX runs (host machine only)"><input type="checkbox" id="headed"> 👁 show browser</label>
     </div>
     <div class="row">
-      <label class="chk"><input type="checkbox" id="quick"> quick mode</label>
-      <label class="chk"><input type="checkbox" id="aipayloads"> AI-generated payloads</label>
+      <label class="chk" title="Security: only read-only GET probes, never create connectors on staging"><input type="checkbox" id="dryrun"> 🛡 dry-run (no writes)</label>
+      <label class="chk" title="LLM generates extra payloads per category — slow on rate-limited free tiers"><input type="checkbox" id="aipayloads"> AI extra payloads (slow)</label>
+      <label class="chk" title="Seconds to sleep between requests (politeness)">throttle <input type="number" id="throttle" class="mini" value="0.15" min="0" max="5" step="0.05"> s</label>
     </div>
-    <div class="plan" id="plan"></div>
     <div class="row">
-      <button id="btnPlan" class="sec">🧠 Plan only</button>
       <button id="btnRun">▶ Run test</button>
     </div>
   </div>
@@ -125,8 +139,12 @@ dialog img{max-width:100%;max-height:85vh;display:block}
     <h2>Live test visualization</h2>
     <div class="steps" id="steps"></div>
     <div class="progress"><i id="pbar"></i></div>
+    <div class="livemeta"><span>⏱ <b id="elapsed">0s</b></span>
+      <span>findings: <b id="livefind">0</b></span>
+      <span>status: <b id="livestatus">running</b></span></div>
     <div id="trace"></div>
-    <div class="row"><button class="stop" id="btnStop" style="display:none">⏹ Stop run</button><button class="sec" id="btnClear">Close view</button></div>
+    <div class="row"><button class="stop" id="btnStop" style="display:none">⏹ Stop run</button>
+      <button class="sec" id="btnClear">Close view</button></div>
   </div>
 
   <div class="card">
@@ -139,10 +157,11 @@ dialog img{max-width:100%;max-height:85vh;display:block}
 <div>
   <div class="card">
     <div class="statgrid" id="stats">
-      <div class="stat"><div class="n" id="s-plat">–</div><div class="l">Platforms</div></div>
-      <div class="stat"><div class="n" id="s-alive">–</div><div class="l">Alive</div></div>
       <div class="stat"><div class="n" id="s-find">–</div><div class="l">Findings</div></div>
-      <div class="stat"><div class="n" id="s-ch" style="color:var(--crit)">–</div><div class="l">Crit/High</div></div>
+      <div class="stat"><div class="n" id="s-crit" style="color:var(--crit)">–</div><div class="l">Critical</div></div>
+      <div class="stat"><div class="n" id="s-high" style="color:var(--bad)">–</div><div class="l">High</div></div>
+      <div class="stat"><div class="n" id="s-med" style="color:var(--warn)">–</div><div class="l">Medium</div></div>
+      <div class="stat"><div class="n" id="s-low" style="color:#7cc4ff">–</div><div class="l">Low/Info</div></div>
     </div>
   </div>
   <div class="card">
@@ -151,7 +170,6 @@ dialog img{max-width:100%;max-height:85vh;display:block}
   </div>
   <div class="card"><div class="row">
     <button class="sec" id="btnRefresh">⟳ Refresh results</button>
-    <button class="sec" onclick="loadTab('reports')">Reports</button>
   </div></div>
 </div>
 </div>
@@ -161,150 +179,178 @@ dialog img{max-width:100%;max-height:85vh;display:block}
 <script>
 const $=s=>document.querySelector(s);
 const DIMS=[['performance','⚡ Performance'],['limits','🧱 Limits'],['security','🛡 Security'],
-['functionality','⚙ Functionality'],['logic','🔀 Logic'],['ux','👁 UX/UI (screenshots)']];
+['functionality','⚙ Functionality'],['logic','🔀 Logic'],['ux','👁 UX/UI']];
 $('#dimboxes').innerHTML=DIMS.map(d=>
 `<label class="chk"><input type="checkbox" class="dim" value="${d[0]}">${d[1]}</label>`).join('');
-
 async function j(u,opt){const r=await fetch(u,opt);if(!r.ok)throw new Error((await r.text()).slice(0,200));return r.json()}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
+// ---- providers: show only configured + auto (trimmed) -------------------
 (async()=>{try{
   const ps=await j('/api/providers');
-  $('#provider').innerHTML='<option value="">LLM: auto-detect</option>'+ps.map(p=>
-   `<option value="${p.name}">${p.name}${p.configured?' ✓':''} (${esc(p.default_model||'')})</option>`).join('');
-  const cfg=ps.filter(p=>p.configured).map(p=>p.name);
-  if(cfg.length)$('#mode').textContent='LLM available: '+cfg.join(', ');
+  const cfg=ps.filter(p=>p.configured);
+  $('#provider').innerHTML='<option value="">LLM: auto</option>'+
+    cfg.map(p=>`<option value="${p.name}">${p.name} ✓</option>`).join('');
+  window._provAll=ps;
 }catch(e){}})();
+
+// ---- platform chips -----------------------------------------------------
+(async()=>{try{
+  const ps=await j('/api/platforms');
+  $('#platchips').innerHTML=ps.map(p=>
+    `<span class="chip on" data-k="${p.key}" onclick="this.classList.toggle('on')" title="${esc(p.name)}">${p.key.replace('stg-','')}</span>`).join('');
+}catch(e){$('#platchips').innerHTML='<span class=mut>could not load platforms</span>'}})();
+function chosenPlatforms(){const on=[...document.querySelectorAll('.chip.on')].map(c=>c.dataset.k);
+  return on.length&&on.length<document.querySelectorAll('.chip').length?on:null}
+
+// ---- provider -> model list ---------------------------------------------
+let modelsReq=0;
+async function loadModels(refresh){
+  const p=$('#provider').value, sel=$('#model'), hint=$('#modelhint');
+  const req=++modelsReq;
+  if(!p){sel.disabled=true;sel.innerHTML='<option value="">model: auto default</option>';hint.textContent='';return}
+  sel.disabled=true;sel.innerHTML='<option value="">loading…</option>';hint.textContent='fetching models…';
+  try{
+    const r=await j(`/api/models?provider=${encodeURIComponent(p)}${refresh?'&refresh=1':''}`);
+    if(req!==modelsReq)return;
+    let dflt=((window._provAll||[]).find(x=>x.name===p)||{}).default_model||'';
+    let ms=r.models||[]; if(dflt&&!ms.includes(dflt))ms=[dflt,...ms];
+    sel.disabled=false;
+    sel.innerHTML='<option value="">model: default'+(dflt?` (${esc(dflt)})`:'')+'</option>'+
+      ms.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+    hint.textContent=`${ms.length} model(s) · ${esc(r.source)}`;
+  }catch(e){if(req!==modelsReq)return;sel.disabled=false;hint.textContent='model list failed: '+e.message}
+}
+$('#provider').onchange=()=>loadModels(false);
+$('#btnModels').onclick=()=>loadModels(true);
 
 function chosenDims(){return [...document.querySelectorAll('.dim:checked')].map(c=>c.value)}
 function body(){return {prompt:$('#prompt').value.trim()||null,
-  dims:chosenDims().length?chosenDims():null,
-  provider:$('#provider').value||null, model:$('#model').value.trim()||null,
-  quick:$('#quick').checked, ai_payloads:$('#aipayloads').checked}}
-
-$('#btnPlan').onclick=async()=>{
-  const p=$('#prompt').value.trim(); if(!p){alert('Type a prompt first');return}
-  $('#plan').style.display='block';$('#plan').innerHTML='Planning…';
-  try{const pl=await j('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:p,provider:$('#provider').value||null,model:$('#model').value||null})});
-    $('#plan').innerHTML=`<b>${pl.source==='llm'?'🧠 LLM plan':'🔑 keyword plan'}</b><br>
-      platforms: ${esc((pl.platforms||[]).join(', '))}<br>dimensions: <b>${esc((pl.dimensions||[]).join(', '))}</b><br>
-      ${esc(pl.notes||'')}<br><span class="mut">Press ▶ Run test to execute this.</span>`;
-    document.querySelectorAll('.dim').forEach(c=>c.checked=(pl.dimensions||[]).includes(c.value));
-  }catch(e){$('#plan').innerHTML='plan failed: '+esc(e.message)}
-};
+  dims:chosenDims().length?chosenDims():null, platforms:chosenPlatforms(),
+  provider:$('#provider').value||null, model:$('#model').value||null,
+  quick:$('#quick').checked, ai_payloads:$('#aipayloads').checked,
+  headed:$('#headed').checked, auth:$('#auth').checked, dry_run:$('#dryrun').checked,
+  throttle:parseFloat($('#throttle').value)||0}}
 
 const STEPS=['auth','discovery','performance','limits','security','functionality','logic','ux','report'];
-let es=null, curRun=null;
-$('#btnStop').onclick=async()=>{
-  if(!curRun)return;
-  $('#btnStop').disabled=true;addLine('stop requested…','hit');
-  try{await j(`/api/run/${curRun}/stop`,{method:'POST'})}catch(e){addLine('stop failed: '+e.message,'hit')}
-};
+let es=null, curRun=null, elapsedTimer=null, liveFindings=0;
+$('#btnStop').onclick=async()=>{if(!curRun)return;$('#btnStop').disabled=true;
+  addLine('stop requested…','hit');try{await j(`/api/run/${curRun}/stop`,{method:'POST'})}catch(e){}};
 $('#btnRun').onclick=async()=>{
   const b=body();
   if(!b.prompt&&!b.dims){alert('Write a prompt or tick at least one dimension');return}
   $('#btnRun').disabled=true;
-  try{
-    const r=await j('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-    liveView(r.run_id);
-  }catch(e){alert('start failed: '+e.message)}
+  try{const r=await j('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+    liveView(r.run_id);}catch(e){alert('start failed: '+e.message)}
   $('#btnRun').disabled=false;
 };
 
 function liveView(rid){
-  curRun=rid;
-  $('#livecard').style.display='block';$('#trace').innerHTML='';
-  $('#pbar').style.width='0';
+  curRun=rid;liveFindings=0;
+  $('#livecard').style.display='block';$('#trace').innerHTML='';$('#pbar').style.width='0';
+  $('#livefind').textContent='0';$('#livestatus').textContent='running';
   $('#steps').innerHTML=STEPS.map(s=>`<span class=step id=st-${s}>${s}</span>`).join('');
-  let n=0,total=0,doneSeen=false;
+  const t0=Date.now();
+  if(elapsedTimer)clearInterval(elapsedTimer);
+  elapsedTimer=setInterval(()=>{$('#elapsed').textContent=Math.round((Date.now()-t0)/1000)+'s'},500);
+  let n=0;
   if(es)es.close();
   es=new EventSource(`/api/run/${rid}/stream`);
   es.onmessage=ev=>{
     const d=JSON.parse(ev.data);
-    if(d.line==='__DONE__'){doneSeen=true;es.close();$('#btnRefresh').click();refreshRuns();
+    if(d.line==='__DONE__'){es.close();clearInterval(elapsedTimer);
+      $('#btnRefresh').click();refreshRuns();
+      $('#livestatus').textContent=d.status;
       addLine(`— run ${d.status.toUpperCase()} —`,d.status==='stopped'?'hit':'ok');
       $('#pbar').style.width='100%';$('#btnStop').style.display='none';curRun=null;return}
-    n++;
-    addLine(`${d.ts}  ${d.line}`);
-    for(const s of STEPS){if(d.line.includes('['+s) || d.line.includes(s+']'))mark(s,'on')}
-    if(d.line.includes('[perf]')&&d.line.includes('->'))mark('performance','fin');
-    if(d.line.includes('[suite] done'))mark('logic','fin');
+    n++;addLine(`${d.ts}  ${d.line}`);
+    if(/CONFIRMED|passive .*finding|! \w/.test(d.line)){liveFindings++;$('#livefind').textContent=liveFindings}
+    for(const s of STEPS){if(d.line.includes('['+s)||d.line.includes(s+']'))mark(s,'on')}
     if(d.line.includes('[REPORT]'))mark('report','on');
     if(d.line.startsWith('  Report:'))mark('report','fin');
-    total=Math.max(total,n);$('#pbar').style.width=Math.min(95,8+n*1.2)+'%';
-    const t=$('#trace');t.scrollTop=t.scrollHeight;
+    $('#pbar').style.width=Math.min(95,8+n*1.1)+'%';
+    const tr=$('#trace');tr.scrollTop=tr.scrollHeight;
   };
   es.onerror=()=>{};
-  // Stop button only makes sense while the run is still active; decide via API
-  j(`/api/run/${rid}`).then(r=>{
-    if(!doneSeen && r.status!=='done' && r.status!=='error' && r.status!=='stopped')
-      $('#btnStop').style.display='inline-block';
-    else $('#btnStop').style.display='none';
-  }).catch(()=>{$('#btnStop').style.display='inline-block'});
+  j(`/api/run/${rid}`).then(r=>{$('#btnStop').style.display=
+    ['queued','running'].includes(r.status)?'inline-block':'none'}).catch(()=>{});
 }
 function mark(s,cls){const e=$('#st-'+s);if(e)e.className='step '+cls}
 function addLine(txt,forceCls){
-  let cls='';if(forceCls)cls=forceCls;
-  else if(/!|FAIL|ERROR|WRONG|PROBLEM/.test(txt))cls='hit';
-  else if(/OK|alive|done/.test(txt))cls='ok';
+  let cls=forceCls||'';
+  if(!cls){
+    if(/CONFIRMED|\bfinding/.test(txt))cls='found';
+    else if(/\[auth\]/.test(txt))cls='auth';
+    else if(/\[cleanup\]/.test(txt))cls='cln';
+    else if(/dropped|FAIL|ERROR|WRONG|PROBLEM/.test(txt))cls='hit';
+    else if(/OK|alive|done|deleted/.test(txt))cls='ok';
+  }
   const el=document.createElement('div');
   el.innerHTML=(cls?`<span class=${cls}>`:'<span>')+esc(txt)+'</span>';
   $('#trace').appendChild(el);
 }
-$('#btnClear').onclick=()=>{if(es)es.close();
-  // closing the view only detaches the stream; a running task keeps running
-  // and its Stop button stays available in Recent runs.
-  if(curRun){const r=curRun;
-    j(`/api/run/${r}`).then(x=>{
-      if(['queued','running'].includes(x.status)){
-        $('#runs').insertAdjacentHTML('afterbegin',
-          `<div id="stopbar-${r}"><span class="pill running">running</span> <b>${r}</b>
-           <button class="stop" style="padding:2px 10px;font-size:11px;float:right"
-             onclick="j('/api/run/${r}/stop',{method:'POST'});this.disabled=true;this.textContent='stopping…'">⏹ Stop</button></div>`);
-      }
-    }).catch(()=>{});}
+$('#btnClear').onclick=()=>{if(es)es.close();if(elapsedTimer)clearInterval(elapsedTimer);
   $('#btnStop').style.display='none';$('#livecard').style.display='none';curRun=null};
 async function stopFromList(r,btn){btn.disabled=true;btn.textContent='stopping…';
-  try{await j(`/api/run/${r}/stop`,{method:'POST'})}catch(e){btn.textContent='stop failed'}}
+  try{await j(`/api/run/${r}/stop`,{method:'POST'})}catch(e){}}
 
 /* ---------------- tabs / results ---------------- */
 const TABS=[['findings','Findings'],['performance','Performance'],['limits','Limits'],
-['func','Functionality'],['logic','Logic'],['ux','UX reviews'],['shots','Screenshots'],
-['reports','Reports']];
+['func','Functionality'],['logic','Logic'],['ux','UX reviews'],['reports','Reports']];
 $('#tabs').innerHTML=TABS.map((t,i)=>`<button class="tab${i?'':' sel'}" data-t="${t[0]}">${t[1]}</button>`).join('');
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');loadTab(b.dataset.t)});
 
-let lastReport=null;
-async function refreshAll(){ // pull latest report for charts
-  try{const rs=await j('/api/reports');if(rs.length){lastReport=await j('/api/report/'+rs[0].name);
-    $('#s-plat').textContent=lastReport.total??'–';$('#s-alive').textContent=lastReport.alive??'–';
-    $('#s-find').textContent=lastReport.findings??'–';$('#s-ch').textContent=lastReport.critical_high??'–';}}catch(e){}
+let lastReport=null, allFindings=[];
+const SEVRANK={critical:4,high:3,medium:2,low:1,info:0};
+async function refreshAll(){
+  try{const rs=await j('/api/reports');if(rs.length){lastReport=await j('/api/report/'+rs[0].name);}}catch(e){}
+  try{allFindings=await j('/api/findings');}catch(e){allFindings=[]}
+  const c={critical:0,high:0,medium:0,low:0,info:0};
+  allFindings.forEach(f=>{c[f.severity]=(c[f.severity]||0)+1});
+  $('#s-find').textContent=allFindings.length;
+  $('#s-crit').textContent=c.critical;$('#s-high').textContent=c.high;
+  $('#s-med').textContent=c.medium;$('#s-low').textContent=c.low+c.info;
 }
-function hasData(section,keys){ // true if the latest report contains suite data
-  const s=lastReport?.suite?.[section];
-  if(!s||typeof s!=='object')return false;
-  return keys?keys.some(k=>k in s):Object.keys(s).length>0;
-}
-function noDataMsg(name,dim){return `<span class=mut>No ${esc(name)} data in the latest report (${esc(dim)}).</span><br><span class=mut>Run a test with the <b>${esc(dim)}</b> dimension ticked (or ask the agent via prompt), then press ⟳ Refresh results.</span>`}
+function noDataMsg(name,dim){return `<span class=mut>No ${esc(name)} data in the latest report.</span><br><span class=mut>Run a test with the <b>${esc(dim)}</b> dimension, then ⟳ Refresh.</span>`}
 $('#btnRefresh').onclick=async()=>{await refreshAll();loadTab(document.querySelector('.tab.sel').dataset.t)};
+
+function findingsTable(){
+  const sevF=$('#fSev')?$('#fSev').value:'', platF=$('#fPlat')?$('#fPlat').value:'', catF=$('#fCat')?$('#fCat').value:'';
+  let rows=allFindings.slice().sort((a,b)=>(SEVRANK[b.severity]||0)-(SEVRANK[a.severity]||0));
+  if(sevF)rows=rows.filter(r=>r.severity===sevF);
+  if(platF)rows=rows.filter(r=>r.platform===platF);
+  if(catF)rows=rows.filter(r=>r.category===catF);
+  const plats=[...new Set(allFindings.map(f=>f.platform))].sort();
+  const cats=[...new Set(allFindings.map(f=>f.category))].sort();
+  const opt=(v,s)=>`<option value="${esc(v)}"${v===s?' selected':''}>${esc(v||'all')}</option>`;
+  const filt=`<div class="filters">
+    <select id="fSev" onchange="renderFindings()">${['','critical','high','medium','low','info'].map(v=>opt(v,sevF)).join('')}</select>
+    <select id="fPlat" onchange="renderFindings()">${['',...plats].map(v=>opt(v,platF)).join('')}</select>
+    <select id="fCat" onchange="renderFindings()">${['',...cats].map(v=>opt(v,catF)).join('')}</select>
+    <span class="mut" style="align-self:center">${rows.length} shown</span></div>`;
+  if(!allFindings.length)return '<span class=mut>No findings yet — run a 🛡 Security or ⚙ Functionality test.</span>';
+  const body=rows.map((x,i)=>`<tr class="frow" onclick="document.getElementById('ev${i}').style.display=document.getElementById('ev${i}').style.display==='none'?'table-row':'none'">
+      <td>${esc(x.platform)}</td><td>${esc(x.category)}</td><td>${esc(x.finding_type)}</td>
+      <td>${esc(x.status)}</td><td><span class="sev ${esc(x.severity)}">${esc(x.severity)}</span></td></tr>
+    <tr id="ev${i}" style="display:none"><td colspan="5"><div class="ev"><b>endpoint:</b> ${esc(x.endpoint)}
+      ${x.payload?`\n<b>payload:</b> ${esc(x.payload)}`:''}
+      ${x.evidence?`\n<b>evidence:</b> ${esc(x.evidence)}`:''}
+      ${x.recommendation?`\n<b>fix:</b> ${esc(x.recommendation)}`:''}</div></td></tr>`).join('');
+  return filt+`<table><tr><th>Platform</th><th>Category</th><th>Type</th><th>HTTP</th><th>Severity</th></tr>${body}</table>`;
+}
+function renderFindings(){$('#tabbody').innerHTML=findingsTable()}
 
 async function loadTab(t){
   const el=$('#tabbody');el.innerHTML='<span class=mut>loading…</span>';
-  if(!lastReport)await refreshAll();   // always have latest report before rendering
+  if(!lastReport&&!allFindings.length)await refreshAll();
   try{
-    if(t==='findings'){const f=await j('/api/findings');
-      el.innerHTML=f.length?`<table><tr><th>Platform</th><th>Category</th><th>Type</th><th>Status</th><th>Severity</th><th>Payload</th></tr>`+
-        f.map(x=>`<tr><td>${esc(x.platform)}</td><td>${esc(x.category)}</td><td>${esc(x.finding_type)}</td>
-        <td>${esc(x.status)}</td><td><span class="sev ${esc(x.severity)}">${esc(x.severity)}</span></td>
-        <td class=mut title="${esc(x.endpoint)}">${esc((x.payload||'').slice(0,40))}</td></tr>`).join('')+'</table>'
-        :'<span class=mut>No findings yet — run a 🛡 Security test.</span>';
-    }else if(t==='performance'){
+    if(t==='findings'){el.innerHTML=findingsTable();}
+    else if(t==='performance'){
       const p=(lastReport?.suite?.performance)||{};const ks=Object.keys(p);
       if(!ks.length){el.innerHTML=noDataMsg('performance','⚡ Performance');return}
       const mx=Math.max(...ks.map(k=>p[k].p95_ms||0),1);
-      el.innerHTML=`<table><tr><th>Platform</th><th>Avg ms</th><th>p95 latency</th><th>HTML size</th></tr>`+
+      el.innerHTML=`<table><tr><th>Platform</th><th>Avg ms</th><th>p95 latency</th><th>HTML</th></tr>`+
         ks.map(k=>`<tr><td>${esc(k)}</td><td>${p[k].avg_ms}</td>
         <td><div style="display:flex;align-items:center;gap:8px"><div class=bar style="width:${Math.max(6,100*(p[k].p95_ms||0)/mx)}%"><i style="width:100%"></i></div>${p[k].p95_ms}ms</div></td>
         <td>${(p[k].avg_html_bytes/1024).toFixed(1)} KB</td></tr>`).join('')+'</table>';
@@ -313,38 +359,50 @@ async function loadTab(t){
       el.innerHTML=`<table><tr><th>Probe</th><th>HTTP</th><th>Time</th><th>Verdict</th></tr>`+
         Object.entries(l).filter(([k,v])=>v.status!==undefined).map(([k,v])=>
         `<tr><td>${esc(k)}</td><td>${v.status}</td><td>${v.ms}ms</td><td>${esc(v.verdict)}</td></tr>`).join('')+
-        `</table><p class=mut>Burst result: ${esc(JSON.stringify(l.burst_12x_root||{}))}</p>`;
+        `</table><p class=mut>Rate-limit burst: ${esc(JSON.stringify(l.rate_limit_burst||{}))}</p>`;
     }else if(t==='func'){
       const f=lastReport?.suite?.functionality;if(!f||!Object.keys(f).length){el.innerHTML=noDataMsg('functionality','⚙ Functionality');return}
-      el.innerHTML=`<table><tr><th>Platform</th><th>Status</th><th>SPA</th><th>Title</th><th>Favicon</th><th>Viewport</th><th>Problems</th></tr>`+
+      const vw=v=>v.verified_working===undefined?'<span class=mut>?</span>:(v.verified_working?'<span style="color:var(--ok)">✓ working</span>':'<span style="color:var(--warn)">shell only</span>');
+      el.innerHTML=`<table><tr><th>Platform</th><th>HTTP</th><th>SPA</th><th>Route distinct</th><th>Verified working</th></tr>`+
         Object.entries(f).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.http_status}</td>
-        <td>${v.is_spa?'✓':'✗'}</td><td>${v.has_title?'✓':'✗'}</td><td>${v.has_favicon?'✓':'✗'}</td>
-        <td>${v.has_meta_viewport?'✓':'✗'}</td><td class=mut>${esc((v.problems||[]).join(', ')||'none')}</td></tr>`).join('')+'</table>';
+        <td>${v.is_spa?'✓':'✗'}</td>
+        <td>${v.route_distinct===null||v.route_distinct===undefined?'<span class=mut>n/a</span>':(v.route_distinct?'✓':'✗ catch-all')}</td>
+        <td title="${esc(v.verified_by||'')}">${vw(v)}</td></tr>`).join('')+'</table>'+
+        `<p class=mut>"Verified working" = distinct route (route-diff) OR UX rendered real content while authenticated — a catch-all 200 alone is not "working".</p>`;
     }else if(t==='logic'){
       const g=lastReport?.suite?.logic;if(!g||!Object.keys(g).length){el.innerHTML=noDataMsg('logic','🔀 Logic');return}
       el.innerHTML='<pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(g,null,2))+'</pre>';
     }else if(t==='ux'){
-      const u=lastReport?.ux_reviews;if(!u||!u.length){el.innerHTML='<span class=mut>No UX reviews yet — run 👁 UX/UI to capture screenshots + comments.</span>';return}
+      const u=lastReport?.ux_reviews;if(!u||!u.length){el.innerHTML='<span class=mut>No UX reviews yet — run 👁 UX/UI (with 🔓 login to review inside the app).</span>';return}
       el.innerHTML=u.map(r=>{const rv=r.ux_review||{};
-        return `<div class=uxitem><b>${esc(r.name)}</b> <span class=badge>${esc(rv.source||'llm')}</span>
+        const authBadge=r.authenticated?'<span class="badge auth">authenticated ✓</span>':'<span class="badge anon">public page</span>';
+        return `<div class=uxitem><b>${esc(r.name)}</b> ${authBadge}
         <span class=badge>${'★'.repeat(rv.overall_rating_1to5||0)}${'☆'.repeat(5-(rv.overall_rating_1to5||0))}</span>
-        ${r.screenshot?`<img src="/screenshots/${esc(r.screenshot)}" onclick="zoom(this.src)">`:''}
+        ${r.screenshot?`<img src="/screenshots/${esc(r.screenshot)}" loading=lazy onclick="zoom(this.src)">`:''}
         <div><i>"${esc(rv.first_impression||'')}"</i></div>
         ${(rv.confusions||[]).map(c=>`<div style="color:var(--warn)">😕 ${esc(c)}</div>`).join('')}
         ${(rv.accessibility_issues||[]).map(c=>`<div style="color:var(--bad)">♿ ${esc(c)}</div>`).join('')}
         ${(rv.praise||[]).map(c=>`<div style="color:var(--ok)">👍 ${esc(c)}</div>`).join('')}
         <div class=mut>${esc(r.url)} · HTTP ${esc(r.http_status)}</div></div>`}).join('');
-    }else if(t==='shots'){const ss=await j('/api/screenshots');
-      el.innerHTML=ss.length?`<div class=shots>`+ss.map(s=>
-        `<div class=shot><img src="/screenshots/${esc(s.name)}" loading=lazy onclick="zoom(this.src)">
-        <div class=cap>${esc(s.platform)} · ${esc(s.modified)}</div></div>`).join('')+`</div>`
-        :'<span class=mut>No screenshots yet — they appear after a UX/UI run.</span>';
     }else if(t==='reports'){const rs=await j('/api/reports');
-      el.innerHTML=`<table><tr><th>Report</th><th>Size</th><th>When</th><th></th></tr>`+rs.map(r=>
-        `<tr><td>${esc(r.name)}</td><td>${(r.size/1024).toFixed(0)} KB</td><td class=mut>${esc(r.modified)}</td>
-        <td><a href="/api/report/${encodeURIComponent(r.name)}" download><button class=sec style="padding:4px 10px">⬇</button></a></td></tr>`).join('')+'</table>';
+      el.innerHTML=rs.length?`<table><tr><th>Report</th><th>Size</th><th>When</th><th>Read / Export</th></tr>`+rs.map(r=>{
+        const n=encodeURIComponent(r.name);
+        return `<tr><td>${esc(r.name)}</td><td>${(r.size/1024).toFixed(0)} KB</td><td class=mut>${esc(r.modified)}</td>
+        <td style="white-space:nowrap">
+          <button class=sec style="padding:4px 9px" onclick="openReport('${n}')">📄 Read</button>
+          <a href="/report-view/${n}" target="_blank"><button class=sec style="padding:4px 9px">🖨 PDF</button></a>
+          <a href="/api/report/${n}" download><button class=sec style="padding:4px 9px">⬇ JSON</button></a>
+        </td></tr>`}).join('')+'</table>':'<span class=mut>No reports yet — run a test.</span>';
     }
   }catch(e){el.innerHTML='<span class=mut>'+esc(e.message)+'</span>'}
+}
+function openReport(n){
+  $('#tabbody').innerHTML=`<div class="row" style="margin-bottom:10px">
+    <button class=sec onclick="loadTab('reports')">← Back</button>
+    <button onclick="document.getElementById('rv').contentWindow.print()">🖨 Save as PDF</button>
+    <a href="/api/report/${n}" download><button class=sec>⬇ JSON</button></a>
+    <a href="/report-view/${n}" target="_blank"><button class=sec>↗ New tab</button></a>
+  </div><iframe id="rv" class="rv" src="/report-view/${n}" title="report"></iframe>`;
 }
 function zoom(src){$('#dlgimg').src=src;$('#dlg').showModal()}
 $('#dlg').onclick=()=>$('#dlg').close();
@@ -353,7 +411,7 @@ async function refreshRuns(){try{const rs=await j('/api/runs');
   $('#runs').innerHTML=rs.length?rs.slice(0,8).map(r=>{
    const running=['queued','running'].includes(r.status);
    return `<div><span class="pill ${r.status}">${r.status}</span> <b>${r.id}</b>
-    ${esc((r.spec&&(r.spec.prompt||r.spec.dims&&r.spec.dims.join('+')))||'')} 
+    ${esc((r.spec&&(r.spec.prompt||r.spec.dims&&r.spec.dims.join('+')))||'')}
     ${r.summary?`· ${r.summary.findings} findings`:''}
     ${running?`<button class=stop style="padding:2px 8px;font-size:11px;float:right;margin-left:6px" onclick="stopFromList('${r.id}',this)">⏹</button>`:''}
     <button class=sec style="padding:2px 8px;font-size:11px;float:right" onclick="liveView('${r.id}')">view</button></div>`}).join('')

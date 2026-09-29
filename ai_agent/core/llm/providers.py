@@ -100,6 +100,19 @@ class AnthropicProvider(BaseProvider):
         except Exception as e:
             raise LLMError(f'anthropic: bad response: {str(data)[:200]}') from e
 
+    def list_models(self):
+        import urllib.request
+        url = f'{self.base_url}/models'
+        req = urllib.request.Request(url, headers=self._headers(),
+                                     method='GET')
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                data = json.loads(r.read().decode('utf-8', 'replace'))
+        except Exception as e:
+            raise LLMError(f'anthropic: models: {e}') from e
+        return sorted({m['id'] for m in data.get('data', [])
+                       if isinstance(m, dict) and m.get('id')})
+
 
 # --------------------------------------------------------------------------
 # Google Gemini (generateContent -- auth via query param)
@@ -132,6 +145,23 @@ class GeminiProvider(BaseProvider):
             return ''.join(p.get('text', '') for p in parts)
         except (KeyError, IndexError, TypeError) as e:
             raise LLMError(f'gemini: bad response: {str(data)[:200]}') from e
+
+    def list_models(self):
+        import urllib.request
+        url = f'{self.base_url}/models?key={self.api_key}'
+        req = urllib.request.Request(url, headers=self._headers(),
+                                     method='GET')
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                data = json.loads(r.read().decode('utf-8', 'replace'))
+        except Exception as e:
+            raise LLMError(f'gemini: models: {e}') from e
+        out = []
+        for m in data.get('models', []) or data.get('sdkModels', []):
+            name = m.get('name', '')
+            out.append(name[len('models/'):] if name.startswith('models/')
+                       else name)
+        return sorted(x for x in out if x)
 
 
 # --------------------------------------------------------------------------
@@ -176,10 +206,11 @@ PROVIDERS = {
     'nvidia': make_compatible(
         'nvidia', 'https://integrate.api.nvidia.com/v1',
         ('NVIDIA_API_KEY', 'NIM_API_KEY', 'ABA_LLM_API_KEY'),
-        # latest powerful third-party models on the NIM free catalog:
-        # GLM-5.3 (flagship), DeepSeek-V4.1, Kimi-K3 all verified live.
-        # NIM only delivers these in reasonable time via SSE streaming.
-        'z-ai/glm-5.3-flash', stream=True),
+        # Default must be a model that actually responds on the free NIM
+        # endpoint. Verified 2026-09-29: nemotron-3-super answers in ~2s over
+        # SSE, whereas the previous default (z-ai/glm-5.3-flash) and other
+        # flagship reasoning models time out (>50s) on every call.
+        'nvidia/nemotron-3-super-120b-a12b', stream=True),
     'azure': make_compatible(
         'azure', 'https://YOUR_RESOURCE.openai.azure.com/openai/deployments/'
                  'YOUR_DEPLOYMENT',
@@ -210,7 +241,7 @@ class CustomProvider(OpenAICompatibleProvider):
     ABA_LLM_BASE_URL / ABA_LLM_API_KEY / ABA_LLM_MODEL -- talks to any
     OpenAI-compatible endpoint (covers everything not in PROVIDERS)."""
     name = 'custom'
-    default_base_url = os_default = ''
+    default_base_url = ''
     requires_key = False
 
     def __init__(self, **kw):
@@ -219,3 +250,56 @@ class CustomProvider(OpenAICompatibleProvider):
             raise LLMError('custom provider needs ABA_LLM_BASE_URL')
         if not self.model:
             raise LLMError('custom provider needs ABA_LLM_MODEL')
+
+
+# --------------------------------------------------------------------------
+# Model discovery (used by the Web UI provider picker)
+# --------------------------------------------------------------------------
+# Curated fallbacks used when the live GET /models endpoint is unreachable
+# or returns nothing useful (e.g. Azure deployments are not listable).
+CURATED_MODELS = {
+    # Verified working on the free tiers 2026-09-29 (see tools/llm_provider_test
+    # or the model-probe report); ordered fastest/most-reliable first.
+    'groq': ['qwen/qwen3.8-27b', 'allam-2-7b',
+             'openai/gpt-oss-20b', 'openai/gpt-oss-120b'],
+    'nvidia': ['nvidia/nemotron-3-super-120b-a12b',
+               'nvidia/nemotron-3-ultra-550b-a55b',
+               'openai/gpt-oss-20b', 'meta/llama-3.2-11b-vision-instruct'],
+    'openai': ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'o3-mini'],
+    'anthropic': ['claude-sonnet-4-20250514', 'claude-3-5-haiku-latest'],
+    'gemini': ['gemini-2.0-flash', 'gemini-1.5-pro'],
+    'ollama': ['llama3.1', 'qwen2.5-coder', 'deepseek-r1'],
+    'custom': [],
+}
+
+
+def list_provider_models(name, base_url=None, api_key=None, timeout=15):
+    """Best-effort model catalogue for one provider.
+
+    Tries the provider's live ``GET /models`` endpoint first; on any error
+    falls back to a small curated list so the UI always has something to
+    show.  Returns {'provider', 'source': 'live'|'fallback'|'none',
+    'models': [...], 'error': str|None}.
+    """
+    cls = PROVIDERS.get(name)
+    if cls is None and name != 'custom':
+        return {'provider': name, 'source': 'none', 'models': [],
+                'error': f'unknown provider: {name}'}
+    try:
+        prov = (cls if name == 'custom' else cls)(base_url=base_url,
+                                                  api_key=api_key,
+                                                  timeout=timeout)
+        models = prov.list_models()
+        if models:
+            return {'provider': name, 'source': 'live', 'models': models,
+                    'error': None}
+        err = None
+    except Exception as e:
+        models, err = [], str(e)[:200]
+    fallback = CURATED_MODELS.get(name, [])
+    if fallback:
+        return {'provider': name, 'source': 'fallback', 'models': fallback,
+                'error': err}
+    dflt = getattr(cls, 'default_model_name', '') if cls else ''
+    return {'provider': name, 'source': 'none',
+            'models': [dflt] if dflt else [], 'error': err}

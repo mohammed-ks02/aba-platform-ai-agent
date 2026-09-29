@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aba-agent-webui",
+      "runtimeExecutable": "C:/Users/LENOVO/Desktop/aba-platform-ai-agent-tasks-from-day-one-ef98a/.venv/Scripts/python.exe",
+      "runtimeArgs": ["webui/app.py"],
+      "port": 8787,
+      "url": "http://127.0.0.1:8787"
+    }
+  ]
+}

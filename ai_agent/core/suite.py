@@ -23,6 +23,7 @@ from datetime import datetime
 
 from .config import CONFIG, PLATFORMS
 from .http_client import req, discover, check_abort
+from .classifier import passive_findings
 
 
 # ---------------------------------------------------------------- helpers
@@ -89,30 +90,36 @@ def test_performance(mem, keys=None, samples=5, token='', trace_cb=None):
 # ---------------------------------------------------------------- limits
 def test_limits(mem, keys=None, token='', trace_cb=None):
     trace = trace_cb or (lambda m: None)
-    target = PLATFORMS.get('stg-dp', {}).get('mgr') or \
-        PLATFORMS[keys or list(PLATFORMS)[0]]['base']
+    # These probes hit the Data Platform manager API specifically. When the
+    # caller selected platforms that do not include stg-dp, skip cleanly
+    # instead of crashing on PLATFORMS[<list>] or silently probing a target
+    # the user never asked for.
+    if keys and 'stg-dp' not in keys:
+        trace('[limits] skipped (stg-dp manager API not in selected platforms)')
+        return {'skipped': 'stg-dp (manager API) not selected'}
+    target = PLATFORMS['stg-dp']['mgr']
+    # (label, json body, extra request headers)
     probes = [
         ('oversized_payload_64kb',
          {'name': 'limit-big', 'type': 'bigquery',
-          'source_config': {'blob': 'A' * 65536}}),
+          'source_config': {'blob': 'A' * 65536}}, None),
         ('deep_nesting_100',
          {'name': 'limit-deep', 'type': 'bigquery',
-          'source_config': json.loads('{"a":' * 50 + '1' + '}' * 50)}),
+          'source_config': json.loads('{"a":' * 50 + '1' + '}' * 50)}, None),
         ('unicode_zwj_emoji',
          {'name': 'fam\u00EDlia-\U0001F468\u200D\U0001F469\u200D\U0001F467',
-          'type': 'bigquery', 'source_config': {'f': 'ok'}}),
+          'type': 'bigquery', 'source_config': {'f': 'ok'}}, None),
+        # 16 KB header value actually exercises server header-size limits
+        # (nginx/most gateways cap header buffers around 8 KB).
         ('huge_header',
-         {'name': 'hdr', 'type': 'bigquery', 'source_config': {'f': 'x'}}),
+         {'name': 'hdr', 'type': 'bigquery', 'source_config': {'f': 'x'}},
+         {'X-Fuzz-Blob': 'A' * 16384}),
     ]
     results = {}
-    for label, body in probes:
-        hdr_extra = {}
-        if label == 'huge_header':
-            # req() has no custom-header arg; stuff via user-agent style
-            hdr_extra = {}
+    for label, body, extra_headers in probes:
         url = f'{target}/connectors'
         t0 = time.monotonic()
-        r = req('POST', url, body, token)
+        r = req('POST', url, body, token, headers=extra_headers)
         ms = round((time.monotonic() - t0) * 1000, 1)
         status = r['status']
         graceful = status in (0, 400, 413, 422) or 400 <= status < 500
@@ -127,22 +134,25 @@ def test_limits(mem, keys=None, token='', trace_cb=None):
                              'high' if status >= 500 else 'medium',
                              f'{label}: server did not degrade gracefully',
                              recommendation=f'Harden input limit for {label}')
-    # simple rate-limit burst on root page
-    burst_url = PLATFORMS['stg-dp']['base']
+    # rate-limit probe: a meaningful burst against the API (not a 12-request
+    # root ping), so "no rate limiting" is only claimed at a defensible volume.
+    burst_n = 5 if not token else 60
+    burst_url = (PLATFORMS['stg-dp']['mgr'] + '/connectors') if token \
+        else PLATFORMS['stg-dp']['base']
     codes = []
-    for _ in range(12):
-        r = req('GET', burst_url)
-        codes.append(r['status'])
+    for _ in range(burst_n):
+        codes.append(req('GET', burst_url, token=token)['status'])
     rl = sum(1 for c in codes if c == 429)
-    results['burst_12x_root'] = {'codes': sorted(set(codes)),
-                                 'rate_limited': bool(rl)}
-    trace(f'[limits] burst x12 root: codes={sorted(set(codes))} '
-          f'rate_limited={bool(rl)}')
-    if not rl:
-        mem.save_finding('stg-dp', burst_url, 'limits', 'burst_12x_root', 200,
+    results['rate_limit_burst'] = {'codes': sorted(set(codes)),
+                                   'rate_limited': bool(rl), 'n': burst_n,
+                                   'url': burst_url}
+    trace(f'[limits] rate-limit burst x{burst_n} on {burst_url}: '
+          f'codes={sorted(set(codes))} rate_limited={bool(rl)}')
+    if not rl and burst_n >= 30:
+        mem.save_finding('stg-dp', burst_url, 'limits', 'rate_limit_burst', 200,
                          'no_rate_limiting', 'low',
-                         'No 429 observed on 12-request burst',
-                         recommendation='Add rate limiting to public endpoints')
+                         f'No 429 across {burst_n} rapid authenticated requests',
+                         recommendation='Add rate limiting to API endpoints')
     return results
 
 
@@ -153,15 +163,37 @@ def test_functionality(mem, keys=None, token='', trace_cb=None):
     for key in (keys or PLATFORMS):
         info = PLATFORMS[key]
         d = discover(info['base'], timeout=10)
-        html = ''
-        try:
-            import urllib.request
-            rq = urllib.request.Request(
-                info['base'], headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(rq, timeout=10) as resp:
-                html = resp.read(400000).decode('utf-8', errors='replace')
-        except Exception:
-            pass
+        # passive security review of the response headers (all 9 platforms,
+        # zero risk -- reads only what the server already returns)
+        hr = req('GET', info['base'], token=token)
+        pf_list = passive_findings(hr['status'], hr.get('headers'),
+                                   hr.get('body', ''), info['base'])
+        for pf in pf_list:
+            mem.save_finding(key, info['base'], pf['category'], '',
+                             hr['status'], pf['finding_type'], pf['severity'],
+                             pf['evidence'], recommendation=pf['recommendation'])
+        if pf_list:
+            trace(f'[func] {key}: {len(pf_list)} passive header/cookie/CORS '
+                  f'finding(s)')
+        import urllib.request
+
+        def _fetch(u):
+            try:
+                rq = urllib.request.Request(
+                    u, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(rq, timeout=10) as resp:
+                    return resp.read(400000).decode('utf-8', errors='replace')
+            except Exception:
+                return ''
+        html = _fetch(info['base'])
+        # route-diff: fetch a bogus sibling path. If it returns the SAME body,
+        # the server client-routes a catch-all SPA shell, so a 200 on the real
+        # path does NOT prove the route/feature exists -- functionality here is
+        # shell-level, and "working" must be proven by UX hydration + auth.
+        bogus = info['base'].rstrip('/') + '/__aba_route_probe_404__'
+        bhtml = _fetch(bogus)
+        catch_all = bool(html) and bool(bhtml) and (
+            bhtml == html or abs(len(bhtml) - len(html)) <= 16)
         checks = {
             'reachable': d['alive'],
             'http_status': d['code'],
@@ -171,6 +203,13 @@ def test_functionality(mem, keys=None, token='', trace_cb=None):
             'has_favicon': 'favicon' in html.lower(),
             'has_meta_viewport': 'viewport' in html.lower(),
             'html_size': len(html),
+            'route_distinct': (not catch_all) if bhtml else None,
+            # HTTP alone cannot verify a catch-all SPA works; the UX dimension's
+            # rendered+authenticated flags upgrade this to verified (see report).
+            'http_verified': bool(d['alive']) and (not catch_all),
+            'status': ('reachable + distinct route' if (d['alive'] and not
+                       catch_all) else ('client-routed shell (verify via UX '
+                       'hydration + auth)' if d['alive'] else 'unreachable')),
         }
         problems = [k for k, ok in (('reachable', checks['reachable']),
                                     ('title', checks['has_title']),
@@ -178,7 +217,8 @@ def test_functionality(mem, keys=None, token='', trace_cb=None):
                     if not ok]
         checks['problems'] = problems
         trace(f'[func] {key}: alive={checks["reachable"]} spa={checks["is_spa"]}'
-              f' title="{d["title"][:30]}"'
+              f' route_distinct={checks["route_distinct"]} '
+              f'-> {checks["status"]}'
               + (f' PROBLEMS={problems}' if problems else ''))
         out[key] = checks
         if problems:
@@ -186,19 +226,32 @@ def test_functionality(mem, keys=None, token='', trace_cb=None):
                              d['code'], 'functional_gap', 'medium',
                              f'missing: {", ".join(problems)}',
                              recommendation='Fix page shell / metadata')
-        # authenticated API round-trip (DP only, has api base)
+        # authenticated API round-trip (DP only, has api base). /health is an
+        # allow-listed public endpoint -- reachable-anonymously is EXPECTED
+        # there, so we only record it as info. The real auth check asserts a
+        # genuinely PROTECTED route (/connectors) is NOT readable without a
+        # token; that is what would be a true high-severity finding.
         if info.get('api') and token:
             r = req('GET', info['api'] + '/health', token=token)
             r_no = req('GET', info['api'] + '/health')
             checks['auth_roundtrip'] = {'with_token': r['status'],
                                         'without_token': r_no['status']}
             trace(f'[func] {key}: /health auth={r["status"]} '
-                  f'anon={r_no["status"]}')
-            if r_no['status'] not in (401, 403, 0) and r['status'] < 400:
-                mem.save_finding(key, info['api'] + '/health', 'functionality',
-                                 '', r_no['status'], 'unauthenticated_access',
-                                 'high', 'API readable without a token',
-                                 recommendation='Enforce auth on API')
+                  f'anon={r_no["status"]} (health is public by design)')
+            prot = info['api'] + '/connectors'
+            pr = req('GET', prot, token=token)
+            pr_no = req('GET', prot)
+            checks['protected_roundtrip'] = {'with_token': pr['status'],
+                                             'without_token': pr_no['status']}
+            trace(f'[func] {key}: /connectors auth={pr["status"]} '
+                  f'anon={pr_no["status"]}')
+            if pr_no['status'] not in (401, 403, 0) and pr['status'] < 400 \
+                    and pr_no['status'] < 400:
+                mem.save_finding(key, prot, 'functionality', '',
+                                 pr_no['status'], 'unauthenticated_access',
+                                 'high', 'Protected API route readable without '
+                                 'a token', recommendation='Enforce auth on '
+                                 'non-public API routes')
     return out
 
 
@@ -206,23 +259,37 @@ def test_functionality(mem, keys=None, token='', trace_cb=None):
 def test_logic(mem, keys=None, token='', trace_cb=None):
     """Behavioural/logic checks against the DP manager API."""
     trace = trace_cb or (lambda m: None)
+    # DP-manager-specific: skip when stg-dp was not among the selected targets.
+    if keys and 'stg-dp' not in keys:
+        trace('[logic] skipped (stg-dp manager API not in selected platforms)')
+        return {'skipped': 'stg-dp (manager API) not selected'}
     mgr = PLATFORMS['stg-dp']['mgr']
     out = {}
     if not token:
         trace('[logic] skipped (no auth token)')
         return {'skipped': 'no token'}
 
+    # A fuller (still likely-invalid) bigquery body so the create has a chance
+    # of succeeding; if it is rejected the idempotency test is INCONCLUSIVE
+    # (you cannot judge uniqueness when the resource was never created).
     body = {'name': 'logic-probe', 'type': 'bigquery',
-            'source_config': {'host': 'example.com'}}
+            'source_config': {'project_id': 'demo', 'dataset': 'demo',
+                              'host': 'example.com'}}
 
     # 1. idempotency: same POST twice
     r1, m1 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
     r2, m2 = _timed_request('POST', f'{mgr}/connectors', body, token=token)
-    dup_created = r1['status'] < 400 and r2['status'] < 400
+    create_ok = r1['status'] < 400
+    dup_created = create_ok and r2['status'] < 400
     out['idempotent_post'] = {'first': r1['status'], 'second': r2['status'],
-                              'duplicate_allowed': dup_created}
-    trace(f'[logic] double POST: {r1["status"]}/{r2["status"]} '
-          f'dup_allowed={dup_created}')
+                              'duplicate_allowed': dup_created,
+                              'conclusive': create_ok}
+    if not create_ok:
+        trace(f'[logic] double POST INCONCLUSIVE: create rejected '
+              f'({r1["status"]}) - cannot test uniqueness with this body')
+    else:
+        trace(f'[logic] double POST: {r1["status"]}/{r2["status"]} '
+              f'dup_allowed={dup_created}')
     if dup_created:
         mem.save_finding('stg-dp', f'{mgr}/connectors', 'logic', '',
                          r2['status'], 'missing_idempotency', 'medium',
