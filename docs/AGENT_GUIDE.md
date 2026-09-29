@@ -89,6 +89,8 @@ ABA_PASSWORD=<staging password>
 ABA_TENANT=arma
 GROQ_API_KEY=gsk_...
 NVIDIA_API_KEY=nvapi-...
+GROQ_API_KEY=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
+NVIDIA_API_KEY=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
 ABA_LLM_PROVIDER=groq
 ABA_LLM_MODEL=qwen/qwen3.8-27b
 ```
