@@ -362,7 +362,7 @@ async function loadTab(t){
         `</table><p class=mut>Rate-limit burst: ${esc(JSON.stringify(l.rate_limit_burst||{}))}</p>`;
     }else if(t==='func'){
       const f=lastReport?.suite?.functionality;if(!f||!Object.keys(f).length){el.innerHTML=noDataMsg('functionality','⚙ Functionality');return}
-      const vw=v=>v.verified_working===undefined?'<span class=mut>?</span>:(v.verified_working?'<span style="color:var(--ok)">✓ working</span>':'<span style="color:var(--warn)">shell only</span>');
+      const vw=v=>v.verified_working===undefined?'<span class=mut>?</span>':(v.verified_working?'<span style="color:var(--ok)">✓ working</span>':'<span style="color:var(--warn)">shell only</span>');
       el.innerHTML=`<table><tr><th>Platform</th><th>HTTP</th><th>SPA</th><th>Route distinct</th><th>Verified working</th></tr>`+
         Object.entries(f).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.http_status}</td>
         <td>${v.is_spa?'✓':'✗'}</td>

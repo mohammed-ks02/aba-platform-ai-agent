@@ -625,12 +625,35 @@ def report_view(name: str):
     return HTMLResponse(render_report_html(rpt, safe))
 
 
+def _free_port(host, start, tries=20):
+    """Return the first free TCP port at/after ``start`` (so a second launch or
+    a leftover server never crashes run.bat with 'address already in use')."""
+    import socket
+    for p in range(start, start + tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                s.bind((host, p))
+                return p
+            except OSError:
+                continue
+    return start  # give up -> let uvicorn surface the error
+
+
 if __name__ == '__main__':
     import uvicorn
+    host = os.environ.get('ABA_UI_HOST', '127.0.0.1')
+    want = int(os.environ.get('ABA_UI_PORT', '8787'))
+    port = _free_port(host, want)
     print('=' * 60)
     print(' ABA Fusion AI Agent — Web UI')
-    print(' Open:  http://127.0.0.1:8787')
+    if port != want:
+        print(f' NOTE: port {want} was busy -> using {port} instead')
+    print(f' Open:  http://{host}:{port}')
     print('=' * 60)
-    uvicorn.run(app, host=os.environ.get('ABA_UI_HOST', '127.0.0.1'),
-                port=int(os.environ.get('ABA_UI_PORT', '8787')),
-                log_level='warning')
+    try:
+        uvicorn.run(app, host=host, port=port, log_level='warning')
+    except OSError as e:
+        print(f'\nERROR: could not start the web server on {host}:{port} ({e}).')
+        print('Another copy may be running. Close it, or set a different port:')
+        print('   set ABA_UI_PORT=8790  &  run.bat')

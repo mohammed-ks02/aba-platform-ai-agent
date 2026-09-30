@@ -27,7 +27,7 @@ python -m pip install --upgrade pip >nul
 pip install -r requirements.txt || (echo ERROR: dependency install failed & exit /b 1)
 
 echo [4/5] Ensuring Playwright Chromium browser is installed ...
-python -m playwright install chromium || (echo WARNING: chromium download failed - live/visual testing will fall back to urllib & exit /b 1)
+python -m playwright install chromium || echo WARNING: chromium download failed - UX/screenshot tests unavailable, but everything else works. You can retry later with: python -m playwright install chromium
 
 echo [5/5] Preparing .env config file...
 if not exist ".env" if exist "env.example" (
